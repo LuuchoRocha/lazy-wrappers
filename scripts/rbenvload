@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if [ -z "$RBENV_ALREADY_LOADED" ]; then
+    [ -z "$RBENV_DIR" ] && export RBENV_DIR="$HOME/.rbenv"
+
+    if ! command -v git >/dev/null 2>&1; then
+        echo "Error: git is required but not installed."
+        return 1 2>/dev/null || exit 1
+    fi
+
+    if [ ! -d "$RBENV_DIR" ]; then
+        git clone --quiet https://github.com/rbenv/rbenv.git "$RBENV_DIR"
+        mkdir -p "$RBENV_DIR/plugins"
+        git clone --quiet https://github.com/rbenv/ruby-build.git "$RBENV_DIR/plugins/ruby-build"
+    fi
+
+    if [ -x "$RBENV_DIR/bin/rbenv" ]; then
+        if [ -n "$ZSH_VERSION" ]; then
+            eval "$("$RBENV_DIR/bin/rbenv" init - zsh)"
+        else
+            eval "$("$RBENV_DIR/bin/rbenv" init - bash)"
+        fi
+
+        export RBENV_ALREADY_LOADED=1
+    else
+        echo "Error: rbenv binary not found at $RBENV_DIR/bin/rbenv"
+    fi
+fi

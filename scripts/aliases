@@ -1,0 +1,10 @@
+#!/bin/bash
+
+alias rbenv="unalias rbenv;. rbenvload &> /dev/null;rbenv"
+alias nvm="unalias nvm;. nvmload &> /dev/null;nvm"
+alias ruby="unalias ruby;rbenv &> /dev/null;ruby"
+alias node="unalias node;nvm &> /dev/null;node"
+alias npx="unalias npx;nvm &> /dev/null;npx"
+alias npm="unalias npm;nvm &> /dev/null;npm"
+alias yarn="unalias yarn;nvm &> /dev/null;yarn"
+alias pnpm="unalias pnpm;nvm &> /dev/null;pnpm"

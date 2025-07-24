@@ -1,0 +1,53 @@
+#!/bin/bash
+
+__is_defined() {
+    local kind
+    kind="$(type -t "$1" 2>/dev/null || true)"
+    [[ "$kind" == "function" || "$kind" == "file" ]]
+}
+
+rbenv() {
+    if ! __is_defined rbenv; then
+        . rbenvload || { echo "Error: Failed to load rbenv"; return 1; }
+    fi
+    command rbenv "$@"
+}
+
+nvm() {
+    if ! __is_defined nvm; then
+        . nvmload || { echo "Error: Failed to load nvm"; return 1; }
+        nvm "$@"
+    else
+        command nvm "$@"
+    fi
+}
+
+ruby() {
+    __is_defined ruby || rbenv >/dev/null || return 1
+    command ruby "$@"
+}
+
+node() {
+    __is_defined node || nvm >/dev/null || return 1
+    command node "$@"
+}
+
+npx() {
+    __is_defined npx || nvm >/dev/null || return 1
+    command npx "$@"
+}
+
+npm() {
+    __is_defined npm || nvm >/dev/null || return 1
+    command npm "$@"
+}
+
+yarn() {
+    __is_defined yarn || nvm >/dev/null || return 1
+    command yarn "$@"
+}
+
+pnpm() {
+    __is_defined pnpm || nvm >/dev/null || return 1
+    command pnpm "$@"
+}

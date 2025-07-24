@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ -z "$NVM_ALREADY_LOADED" ]; then
+    [ -z "$NVM_DIR" ] && export NVM_DIR="$HOME/.nvm"
+
+    if ! command -v git >/dev/null 2>&1; then
+        echo "Error: git is required but not installed."
+        return 1 2>/dev/null || exit 1
+    fi
+
+    if [ ! -d "$NVM_DIR" ]; then
+        git clone --quiet https://github.com/nvm-sh/nvm.git "$NVM_DIR"
+        cd "$NVM_DIR" && git checkout --quiet `git describe --abbrev=0 --tags`
+    fi
+
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+
+    export NVM_ALREADY_LOADED=1
+fi
