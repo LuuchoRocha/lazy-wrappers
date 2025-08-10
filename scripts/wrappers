@@ -18,6 +18,13 @@ ruby() {
   ruby "$@"
 }
 
+
+gem() {
+  unset -f gem
+  rbenv &> /dev/null
+  gem "$@"
+}
+
 node() {
   unset -f node
   nvm &> /dev/null

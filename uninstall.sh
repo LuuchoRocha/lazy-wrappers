@@ -1,20 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
-
-. "./vars.sh"
-
-USER_SHELL="$(basename "$SHELL")"
-RC_FILE=""
-
-case "$USER_SHELL" in
-    bash) RC_FILE="$HOME/.bashrc" ;;
-    zsh)  RC_FILE="$HOME/.zshrc"  ;;
-    *)
-        echo "Unsupported shell: $USER_SHELL"
-        exit 1
-    ;;
-esac
+. ./scripts/config
 
 # Remove installed files
 echo "Removing installed files..."

@@ -1,11 +1,9 @@
 #!/bin/bash
 
-set -euo pipefail
-
-. "./vars.sh"
+. ./scripts/config
 
 # Check if required files exist before proceeding
-for file in "$SCRIPT_DIR/scripts/nvmload" "$SCRIPT_DIR/scripts/rbenvload" "$SCRIPT_DIR/scripts/aliases" "$SCRIPT_DIR/scripts/wrappers"; do
+for file in "$SCRIPT_DIR/nvmload" "$SCRIPT_DIR/rbenvload" "$SCRIPT_DIR/aliases" "$SCRIPT_DIR/wrappers"; do
     if [ ! -f "$file" ]; then
         echo "Error: File $file does not exist."
         exit 1
@@ -13,27 +11,8 @@ for file in "$SCRIPT_DIR/scripts/nvmload" "$SCRIPT_DIR/scripts/rbenvload" "$SCRI
 done
 
 # Install files with proper permissions
-install -m 755 -D "$SCRIPT_DIR/scripts/nvmload" "$NVM_DEST"
-install -m 755 -D "$SCRIPT_DIR/scripts/rbenvload" "$RBENV_DEST"
-
-# Detect user's shell
-if [ -z "${SHELL:-}" ]; then
-    echo "Error: SHELL variable is not set."
-    exit 1
-fi
-
-USER_SHELL="$(basename "$SHELL")"
-RC_FILE=""
-
-case "$USER_SHELL" in
-    bash) RC_FILE="$HOME/.bashrc" ;;
-    zsh)  RC_FILE="$HOME/.zshrc"  ;;
-    *)
-        echo "Unsupported shell: $USER_SHELL"
-        echo "Please manually add a reference to $ALIASES_DEST or $WRAPPERS_DEST in your shell configuration file."
-        exit 1
-    ;;
-esac
+install -m 755 -D "$SCRIPT_DIR/nvmload" "$NVM_DEST"
+install -m 755 -D "$SCRIPT_DIR/rbenvload" "$RBENV_DEST"
 
 # Backup the shell configuration file
 RC_BACKUP="${RC_FILE}.backup-$(date +%Y%m%d%H%M%S)"
@@ -50,7 +29,7 @@ read -r USER_CHOICE
 
 if [ "$USER_CHOICE" -eq 1 ]; then
     # Install aliases file
-    install -m 755 -D "$SCRIPT_DIR/scripts/aliases" "$ALIASES_DEST"
+    install -m 755 -D "$SCRIPT_DIR/aliases" "$ALIASES_DEST"
     
     # Add reference to aliases file if not already present
     if [ -f "$RC_FILE" ]; then
@@ -76,7 +55,7 @@ if [ "$USER_CHOICE" -eq 1 ]; then
     echo "Setup completed using aliases."
 elif [ "$USER_CHOICE" -eq 2 ]; then
     # Install wrappers file
-    install -m 755 -D "$SCRIPT_DIR/scripts/wrappers" "$WRAPPERS_DEST"
+    install -m 755 -D "$SCRIPT_DIR/wrappers" "$WRAPPERS_DEST"
     
     # Add reference to wrappers file if not already present
     if [ -f "$RC_FILE" ]; then
@@ -104,6 +83,8 @@ else
     echo "Invalid option. Please run the script again and choose 1 or 2."
     exit 1
 fi
+
+. $RC_FILE &> /dev/null
 
 # Print success message
 echo "Installation completed successfully."

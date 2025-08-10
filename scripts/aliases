@@ -3,6 +3,7 @@
 alias rbenv="unalias rbenv;. rbenvload &> /dev/null;rbenv"
 alias nvm="unalias nvm;. nvmload &> /dev/null;nvm"
 alias ruby="unalias ruby;rbenv &> /dev/null;ruby"
+alias gem="unalias gem;rbenv &> /dev/null;gem"
 alias node="unalias node;nvm &> /dev/null;node"
 alias npx="unalias npx;nvm &> /dev/null;npx"
 alias npm="unalias npm;nvm &> /dev/null;npm"

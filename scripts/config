@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -euo pipefail
+
+ALIASES_DEST="$HOME/.local/.aliases"
+RBENV_DEST="$HOME/.local/bin/rbenvload"
+NVM_DEST="$HOME/.local/bin/nvmload"
+WRAPPERS_DEST="$HOME/.local/bin/wrappers"
+SCRIPT_DIR="$(pwd)/scripts"
+USER_SHELL="$(basename "$SHELL")"
+RC_FILE=""
+
+case "$USER_SHELL" in
+    bash) RC_FILE="$HOME/.bashrc" ;;
+    zsh)  RC_FILE="$HOME/.zshrc"  ;;
+    *)
+        echo "Unsupported shell: $USER_SHELL"
+        echo "Please manually add a reference to $ALIASES_DEST or $WRAPPERS_DEST in your shell configuration file."
+        exit 1
+    ;;
+esac
