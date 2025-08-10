@@ -1,6 +1,6 @@
 # LazyWrappers
 
-Simple, lazy-loading shell wrappers for `nvm` and `rbenv`, plus helpers for `node`, `npm`, `ruby`, and more — designed to speed up your zsh/bash startup without sacrificing convenience.
+Simple, lazy-loading shell wrappers for `nvm` and `rbenv`, plus helpers for `node`, `npm`, `ruby`, `gem`, and more — designed to speed up your zsh/bash startup without sacrificing convenience.
 
 ## What is it?
 
@@ -9,7 +9,7 @@ LazyWrappers is a small collection of shell scripts that provide:
 - **On-demand initialization** of `nvm` and `rbenv` only when they're actually needed
 - **Faster shell startup times**, especially useful in large projects or slow terminals
 - **Auto-installation of missing tools** (`nvm` or `rbenv`) if not already installed
-- **Convenient aliases and helpers** for common CLI tools like `node`, `npm`, `npx`, `yarn`, `pnpm`, and `ruby`
+- **Convenient aliases and helpers** for common CLI tools like `node`, `npm`, `npx`, `yarn`, `pnpm`, `ruby`, and `gem`
 - **Safe and clean integration** with your existing shell setup (bash or zsh)
 
 Everything is modular and easy to uninstall. No more loading heavy version managers on every shell session just to check your `git status`.
@@ -19,7 +19,7 @@ Everything is modular and easy to uninstall. No more loading heavy version manag
 - ⚡ Lazy loading of `nvm` and `rbenv`
 - 📦 Automatic cloning if not installed
 - 🐚 Compatible with Bash and Zsh
-- 🔧 Supports `node`, `npm`, `npx`, `yarn`, `pnpm`, and `ruby`
+- 🔧 Supports `node`, `npm`, `npx`, `yarn`, `pnpm`, `ruby`, and `gem`
 - 🧼 Clean uninstall support
 
 ## Installation
