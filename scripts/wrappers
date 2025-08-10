@@ -1,53 +1,49 @@
 #!/bin/bash
 
-__is_defined() {
-    local kind
-    kind="$(type -t "$1" 2>/dev/null || true)"
-    [[ "$kind" == "function" || "$kind" == "file" ]]
-}
-
 rbenv() {
-    if ! __is_defined rbenv; then
-        . rbenvload || { echo "Error: Failed to load rbenv"; return 1; }
-    fi
-    command rbenv "$@"
+  unset -f rbenv
+  . rbenvload &> /dev/null
+  rbenv "$@"
 }
 
 nvm() {
-    if ! __is_defined nvm; then
-        . nvmload || { echo "Error: Failed to load nvm"; return 1; }
-        nvm "$@"
-    else
-        command nvm "$@"
-    fi
+  unset -f nvm
+  . nvmload &> /dev/null
+  nvm "$@"
 }
 
 ruby() {
-    __is_defined ruby || rbenv >/dev/null || return 1
-    command ruby "$@"
+  unset -f ruby
+  rbenv &> /dev/null
+  ruby "$@"
 }
 
 node() {
-    __is_defined node || nvm >/dev/null || return 1
-    command node "$@"
+  unset -f node
+  nvm &> /dev/null
+  node "$@"
 }
 
 npx() {
-    __is_defined npx || nvm >/dev/null || return 1
-    command npx "$@"
+  unset -f npx
+  nvm &> /dev/null
+  npx "$@"
 }
 
 npm() {
-    __is_defined npm || nvm >/dev/null || return 1
-    command npm "$@"
+  unset -f npm
+  nvm &> /dev/null
+  npm "$@"
 }
 
 yarn() {
-    __is_defined yarn || nvm >/dev/null || return 1
-    command yarn "$@"
+  unset -f yarn
+  nvm &> /dev/null
+  yarn "$@"
 }
 
 pnpm() {
-    __is_defined pnpm || nvm >/dev/null || return 1
-    command pnpm "$@"
+  unset -f pnpm
+  nvm &> /dev/null
+  pnpm "$@"
 }

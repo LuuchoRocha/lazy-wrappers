@@ -2,10 +2,7 @@
 
 set -euo pipefail
 
-ALIASES_DEST="$HOME/.aliases"
-RBENV_DEST="$HOME/.local/bin/rbenvload"
-NVM_DEST="$HOME/.local/bin/nvmload"
-WRAPPERS_DEST="$HOME/.local/bin/wrappers"
+. "./vars.sh"
 
 USER_SHELL="$(basename "$SHELL")"
 RC_FILE=""

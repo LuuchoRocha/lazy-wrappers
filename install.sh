@@ -2,12 +2,7 @@
 
 set -euo pipefail
 
-ALIASES_DEST="$HOME/.aliases"
-RBENV_DEST="$HOME/.local/bin/rbenvload"
-NVM_DEST="$HOME/.local/bin/nvmload"
-WRAPPERS_DEST="$HOME/.local/bin/wrappers"
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "./vars.sh"
 
 # Check if required files exist before proceeding
 for file in "$SCRIPT_DIR/scripts/nvmload" "$SCRIPT_DIR/scripts/rbenvload" "$SCRIPT_DIR/scripts/aliases" "$SCRIPT_DIR/scripts/wrappers"; do
@@ -20,8 +15,6 @@ done
 # Install files with proper permissions
 install -m 755 -D "$SCRIPT_DIR/scripts/nvmload" "$NVM_DEST"
 install -m 755 -D "$SCRIPT_DIR/scripts/rbenvload" "$RBENV_DEST"
-install -m 755 -D "$SCRIPT_DIR/scripts/aliases" "$ALIASES_DEST"
-install -m 755 -D "$SCRIPT_DIR/scripts/wrappers" "$WRAPPERS_DEST"
 
 # Detect user's shell
 if [ -z "${SHELL:-}" ]; then
@@ -56,6 +49,9 @@ echo "How would you like to configure the commands? (1 for aliases, 2 for wrappe
 read -r USER_CHOICE
 
 if [ "$USER_CHOICE" -eq 1 ]; then
+    # Install aliases file
+    install -m 755 -D "$SCRIPT_DIR/scripts/aliases" "$ALIASES_DEST"
+    
     # Add reference to aliases file if not already present
     if [ -f "$RC_FILE" ]; then
         if ! grep -qF ". \"$ALIASES_DEST\"" "$RC_FILE"; then
@@ -79,6 +75,9 @@ if [ "$USER_CHOICE" -eq 1 ]; then
     fi
     echo "Setup completed using aliases."
 elif [ "$USER_CHOICE" -eq 2 ]; then
+    # Install wrappers file
+    install -m 755 -D "$SCRIPT_DIR/scripts/wrappers" "$WRAPPERS_DEST"
+    
     # Add reference to wrappers file if not already present
     if [ -f "$RC_FILE" ]; then
         if ! grep -qF ". \"$WRAPPERS_DEST\"" "$RC_FILE"; then
