@@ -1,6 +1,6 @@
 # LazyWrappers
 
-Simple, lazy-loading shell wrappers for `nvm` and `rbenv`, plus helpers for `node`, `npm`, `ruby`, `gem`, and more — designed to speed up your zsh/bash startup without sacrificing convenience.
+Simple, lazy-loading shell wrappers for `nvm` and `rbenv`, plus helpers for `node`, `npm`, `ruby`, `gem`, and more — designed to speed up your zsh/bash startup without sacrificing convenience. **LazyWrappers can even auto-install `nvm` or `rbenv` if they are missing, so you can get started with zero manual setup.**
 
 ## What is it?
 
@@ -24,36 +24,7 @@ Everything is modular and easy to uninstall. No more loading heavy version manag
 
 ## Installation
 
-Run the installation script to set up the wrappers and patch your shell config file (`.bashrc` or `.zshrc`):
+Run the installation script to set up the wrappers, automatically install `nvm` or `rbenv` if missing, and patch your shell config file (`.bashrc` or `.zshrc`):
 
 ```bash
 ./install.sh
-````
-
-Then reload your shell configuration:
-
-```bash
-source ~/.bashrc
-# or
-source ~/.zshrc
-```
-
-## Uninstallation
-
-To completely remove the wrappers and undo any changes to your shell config, run:
-
-```bash
-./uninstall.sh
-```
-
-This will clean up any files or lines added during installation.
-
-## Notes
-
-* The wrapper scripts are installed to `~/.local/bin`
-* Your shell config is only modified if necessary, and changes are idempotent
-* Works great for developers who want `nvm` and `rbenv` available *without* always loading them
-
----
-
-Happy coding 🚀
