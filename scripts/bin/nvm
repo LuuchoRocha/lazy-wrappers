@@ -1,0 +1,9 @@
+#!/bin/bash
+# Lazy wrapper for nvm
+
+if declare -f nvm &> /dev/null; then
+  unset -f nvm
+fi
+
+. "$(dirname "$(dirname "$(readlink -f "$0")")")/nvmload" &> /dev/null
+nvm "$@"

@@ -1,0 +1,9 @@
+#!/bin/bash
+# Lazy wrapper for npx
+
+if declare -f npx &> /dev/null; then
+  unset -f npx
+fi
+
+. "$(dirname "$(dirname "$(readlink -f "$0")")")/nvmload" &> /dev/null
+npx "$@"

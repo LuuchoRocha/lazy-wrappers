@@ -1,0 +1,9 @@
+#!/bin/bash
+# Lazy wrapper for rbenv
+
+if declare -f rbenv &> /dev/null; then
+  unset -f rbenv
+fi
+
+. "$(dirname "$(dirname "$(readlink -f "$0")")")/rbenvload" &> /dev/null
+rbenv "$@"

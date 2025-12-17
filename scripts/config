@@ -2,10 +2,9 @@
 
 set -euo pipefail
 
-ALIASES_DEST="$HOME/.local/.aliases"
+BIN_DEST="$HOME/.local/bin"
 RBENV_DEST="$HOME/.local/bin/rbenvload"
 NVM_DEST="$HOME/.local/bin/nvmload"
-WRAPPERS_DEST="$HOME/.local/bin/wrappers"
 SCRIPT_DIR="$(pwd)/scripts"
 USER_SHELL="$(basename "$SHELL")"
 RC_FILE=""
@@ -13,9 +12,15 @@ RC_FILE=""
 case "$USER_SHELL" in
     bash) RC_FILE="$HOME/.bashrc" ;;
     zsh)  RC_FILE="$HOME/.zshrc"  ;;
+    fish) RC_FILE="$HOME/.config/fish/config.fish" ;;
+    ksh)  RC_FILE="$HOME/.kshrc" ;;
+    tcsh) RC_FILE="$HOME/.tcshrc" ;;
+    csh)  RC_FILE="$HOME/.cshrc" ;;
+    dash) RC_FILE="$HOME/.profile" ;;
+    sh)   RC_FILE="$HOME/.profile" ;;
     *)
         echo "Unsupported shell: $USER_SHELL"
-        echo "Please manually add a reference to $ALIASES_DEST or $WRAPPERS_DEST in your shell configuration file."
+        echo "Please manually add $BIN_DEST to your PATH."
         exit 1
     ;;
 esac

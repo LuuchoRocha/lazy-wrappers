@@ -3,16 +3,31 @@
 . ./scripts/config
 
 # Check if required files exist before proceeding
-for file in "$SCRIPT_DIR/nvmload" "$SCRIPT_DIR/rbenvload" "$SCRIPT_DIR/aliases" "$SCRIPT_DIR/wrappers"; do
+for file in "$SCRIPT_DIR/nvmload" "$SCRIPT_DIR/rbenvload"; do
     if [ ! -f "$file" ]; then
         echo "Error: File $file does not exist."
         exit 1
     fi
 done
 
-# Install files with proper permissions
+# Check if bin directory and wrapper scripts exist
+if [ ! -d "$SCRIPT_DIR/bin" ]; then
+    echo "Error: Directory $SCRIPT_DIR/bin does not exist."
+    exit 1
+fi
+
+# Install loader files with proper permissions
 install -m 755 -D "$SCRIPT_DIR/nvmload" "$NVM_DEST"
 install -m 755 -D "$SCRIPT_DIR/rbenvload" "$RBENV_DEST"
+
+# Install wrapper scripts to ~/.local/bin
+echo "Installing wrapper scripts to $BIN_DEST..."
+for script in "$SCRIPT_DIR/bin"/*; do
+    if [ -f "$script" ]; then
+        install -m 755 -D "$script" "$BIN_DEST/$(basename "$script")"
+        echo "  Installed: $(basename "$script")"
+    fi
+done
 
 # Backup the shell configuration file
 RC_BACKUP="${RC_FILE}.backup-$(date +%Y%m%d%H%M%S)"
@@ -23,74 +38,40 @@ else
     echo "File $RC_FILE does not exist. A new one will be created."
 fi
 
-# Ask the user for their preference: aliases or wrappers
-echo "How would you like to configure the commands? (1 for aliases, 2 for wrappers)"
-read -r USER_CHOICE
-
-if [ "$USER_CHOICE" -eq 1 ]; then
-    # Install aliases file
-    install -m 755 -D "$SCRIPT_DIR/aliases" "$ALIASES_DEST"
-    
-    # Add reference to aliases file if not already present
-    if [ -f "$RC_FILE" ]; then
-        if ! grep -qF ". \"$ALIASES_DEST\"" "$RC_FILE"; then
-            echo "Adding reference to $ALIASES_DEST in $RC_FILE..."
-            {
-                echo ""
-                echo "# Load custom nvm/rbenv aliases"
-                echo "[ -s \"$ALIASES_DEST\" ] && . \"$ALIASES_DEST\""
-            } >> "$RC_FILE"
-            echo "$RC_FILE modified"
-        else
-            echo "$ALIASES_DEST is already referenced in $RC_FILE"
-        fi
-    else
-        echo "File $RC_FILE does not exist. Creating a new one..."
+# Add ~/.local/bin to PATH if not already present
+if [ -f "$RC_FILE" ]; then
+    if ! grep -qF "export PATH=\"\$HOME/.local/bin:\$PATH\"" "$RC_FILE"; then
+        echo "Adding $BIN_DEST to PATH in $RC_FILE..."
         {
-            echo "# Load custom nvm/rbenv aliases"
-            echo "[ -s \"$ALIASES_DEST\" ] && . \"$ALIASES_DEST\""
-        } > "$RC_FILE"
-        echo "$RC_FILE created"
-    fi
-    echo "Setup completed using aliases."
-elif [ "$USER_CHOICE" -eq 2 ]; then
-    # Install wrappers file
-    install -m 755 -D "$SCRIPT_DIR/wrappers" "$WRAPPERS_DEST"
-    
-    # Add reference to wrappers file if not already present
-    if [ -f "$RC_FILE" ]; then
-        if ! grep -qF ". \"$WRAPPERS_DEST\"" "$RC_FILE"; then
-            echo "Adding reference to $WRAPPERS_DEST in $RC_FILE..."
-            {
-                echo ""
-                echo "# Load custom nvm/rbenv wrappers"
-                echo "[ -s \"$WRAPPERS_DEST\" ] && . \"$WRAPPERS_DEST\""
-            } >> "$RC_FILE"
-            echo "$RC_FILE modified"
-        else
-            echo "$WRAPPERS_DEST is already referenced in $RC_FILE"
-        fi
+            echo ""
+            echo "# Add local bin directory to PATH for lazy wrappers"
+            echo "export PATH=\"\$HOME/.local/bin:\$PATH\""
+        } >> "$RC_FILE"
+        echo "$RC_FILE modified"
     else
-        echo "File $RC_FILE does not exist. Creating a new one..."
-        {
-            echo "# Load custom nvm/rbenv wrappers"
-            echo "[ -s \"$WRAPPERS_DEST\" ] && . \"$WRAPPERS_DEST\""
-        } > "$RC_FILE"
-        echo "$RC_FILE created"
+        echo "$BIN_DEST is already in PATH in $RC_FILE"
     fi
-    echo "Setup completed using wrappers."
 else
-    echo "Invalid option. Please run the script again and choose 1 or 2."
-    exit 1
+    echo "File $RC_FILE does not exist. Creating a new one..."
+    {
+        echo "# Add local bin directory to PATH for lazy wrappers"
+        echo "export PATH=\"\$HOME/.local/bin:\$PATH\""
+    } > "$RC_FILE"
+    echo "$RC_FILE created"
 fi
 
 . $RC_FILE &> /dev/null
 
 # Print success message
 echo "Installation completed successfully."
-# Print instructions for the user
+echo ""
+echo "Installed wrapper scripts: rbenv, nvm, ruby, gem, node, npm, npx, yarn, pnpm"
+echo ""
 echo "To apply the changes, run:"
-echo "source $RC_FILE"
+echo "  source $RC_FILE"
 echo "or restart your terminal."
-echo "To check that everything works, you can use the 'nvm' and 'rbenv' commands."
+echo ""
+echo "To check that everything works, you can use commands like:"
+echo "  node --version"
+echo "  ruby --version"
 exit 0
