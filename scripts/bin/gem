@@ -1,9 +1,12 @@
 #!/bin/bash
 # Lazy wrapper for gem
 
-if declare -f gem &> /dev/null; then
-  unset -f gem
-fi
+# Remove ourselves from PATH temporarily to avoid recursion
+WRAPPER_DIR="$(dirname "$(readlink -f "$0")")"
+export PATH="${PATH//$WRAPPER_DIR:/}"
 
-. "$(dirname "$(dirname "$(readlink -f "$0")")")/rbenvload" &> /dev/null
-gem "$@"
+# Load rbenv which sets up gem in PATH
+. "$WRAPPER_DIR/rbenvload" &> /dev/null
+
+# Now call the real gem
+exec gem "$@"

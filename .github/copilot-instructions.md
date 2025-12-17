@@ -16,15 +16,20 @@ LazyWrappers is a shell script-based lazy loader system for `nvm` and `rbenv`. I
 All wrappers in `scripts/bin/` follow this exact structure:
 ```bash
 #!/bin/bash
-if declare -f <command> &> /dev/null; then
-  unset -f <command>
-fi
-. "$(dirname "$(dirname "$(readlink -f "$0")")")/nvmload" &> /dev/null  # or rbenvload
-<command> "$@"
+# Remove wrapper directory from PATH to prevent recursion
+WRAPPER_DIR="$(dirname "$(readlink -f "$0")")"
+export PATH="${PATH//$WRAPPER_DIR:/}"
+
+# Load the appropriate version manager (nvmload or rbenvload)
+. "$WRAPPER_DIR/nvmload" &> /dev/null  # or rbenvload for Ruby tools
+
+# Execute the real command (now found in PATH after loader initialized it)
+exec <command> "$@"
 ```
-- Must use `readlink -f` to resolve symlinks and find loader script
-- Function cleanup prevents recursion when wrapper sources the real command
+- **Critical**: Must remove wrapper directory from PATH before calling the real command to prevent infinite recursion
+- Use `readlink -f` to resolve symlinks and find loader script
 - Suppress loader output with `&> /dev/null` for clean UX
+- Use `exec` to replace the wrapper process with the real command
 
 ### Loader Script Idempotency
 `scripts/nvmload` and `scripts/rbenvload` use environment flags (`NVM_ALREADY_LOADED`, `RBENV_ALREADY_LOADED`) to prevent duplicate initialization. Never remove these guards.
@@ -61,10 +66,12 @@ Test across multiple shells since wrapper logic differs slightly:
 
 ## Common Pitfalls
 
+- **PATH recursion**: Wrappers call themselves infinitely if `WRAPPER_DIR` isn't removed from PATH before executing the real command
 - **Don't use relative paths** in wrappers - must use `readlink -f "$0"` for symlink resolution
 - **Preserve `set -euo pipefail`** in config script for strict error handling during installation
 - **Backup RC files** before modification - `install.sh` creates timestamped backups
 - **Handle missing git gracefully** - loaders check for git before cloning
+- **Don't source RC files in install.sh** - can cause exit due to `set -e` when RC contains non-zero exits
 
 ## File Structure Logic
 

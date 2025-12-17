@@ -1,9 +1,12 @@
 #!/bin/bash
 # Lazy wrapper for nvm
 
-if declare -f nvm &> /dev/null; then
-  unset -f nvm
-fi
+# Remove ourselves from PATH temporarily to avoid recursion
+WRAPPER_DIR="$(dirname "$(readlink -f "$0")")"
+export PATH="${PATH//$WRAPPER_DIR:/}"
 
-. "$(dirname "$(dirname "$(readlink -f "$0")")")/nvmload" &> /dev/null
+# Load nvm (nvmload is in the same directory as this wrapper)
+. "$WRAPPER_DIR/nvmload"
+
+# Now call nvm (which should be a function)
 nvm "$@"

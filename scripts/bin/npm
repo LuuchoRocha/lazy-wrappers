@@ -1,9 +1,12 @@
 #!/bin/bash
 # Lazy wrapper for npm
 
-if declare -f npm &> /dev/null; then
-  unset -f npm
-fi
+# Remove ourselves from PATH temporarily to avoid recursion
+WRAPPER_DIR="$(dirname "$(readlink -f "$0")")"
+export PATH="${PATH//$WRAPPER_DIR:/}"
 
-. "$(dirname "$(dirname "$(readlink -f "$0")")")/nvmload" &> /dev/null
-npm "$@"
+# Load nvm which sets up npm in PATH
+. "$WRAPPER_DIR/nvmload" &> /dev/null
+
+# Now call the real npm
+exec npm "$@"

@@ -1,9 +1,12 @@
 #!/bin/bash
 # Lazy wrapper for ruby
 
-if declare -f ruby &> /dev/null; then
-  unset -f ruby
-fi
+# Remove ourselves from PATH temporarily to avoid recursion
+WRAPPER_DIR="$(dirname "$(readlink -f "$0")")"
+export PATH="${PATH//$WRAPPER_DIR:/}"
 
-. "$(dirname "$(dirname "$(readlink -f "$0")")")/rbenvload" &> /dev/null
-ruby "$@"
+# Load rbenv which sets up ruby in PATH
+. "$WRAPPER_DIR/rbenvload" &> /dev/null
+
+# Now call the real ruby
+exec ruby "$@"

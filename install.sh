@@ -60,8 +60,6 @@ else
     echo "$RC_FILE created"
 fi
 
-. $RC_FILE &> /dev/null
-
 # Print success message
 echo "Installation completed successfully."
 echo ""

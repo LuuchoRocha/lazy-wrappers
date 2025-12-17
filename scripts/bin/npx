@@ -1,9 +1,12 @@
 #!/bin/bash
 # Lazy wrapper for npx
 
-if declare -f npx &> /dev/null; then
-  unset -f npx
-fi
+# Remove ourselves from PATH temporarily to avoid recursion
+WRAPPER_DIR="$(dirname "$(readlink -f "$0")")"
+export PATH="${PATH//$WRAPPER_DIR:/}"
 
-. "$(dirname "$(dirname "$(readlink -f "$0")")")/nvmload" &> /dev/null
-npx "$@"
+# Load nvm which sets up npx in PATH
+. "$WRAPPER_DIR/nvmload" &> /dev/null
+
+# Now call the real npx
+exec npx "$@"
