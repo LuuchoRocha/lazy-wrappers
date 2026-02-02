@@ -1,9 +1,15 @@
 # lazy-wrappers
 
-Speed up your shell startup by lazy-loading `nvm` and `rbenv`. Instead of loading these version managers on every terminal session, they're loaded only when you actually use `node`, `ruby`, or related commands.
+**96% faster shell startup.** Defer loading of `nvm` and `rbenv` until you actually run `node`, `ruby`, or related commands.
 
-**Key Features:**
-- ⚡ ~96% faster shell startup (see [benchmarks](#benchmarks))
+Traditional shell configs load version managers eagerly on every terminal session—`nvm` typically adds 200-400ms of startup time. With lazy-wrappers, your shell starts in milliseconds and version managers load on-demand.
+
+**Measured improvements:**
+- Shell startup: **96% faster** vs traditional nvm loading (5-10ms vs 200-400ms)
+- First command: ~1-2ms one-time overhead to load the version manager
+- Subsequent commands: **zero overhead**—wrappers are removed from PATH after first use
+
+**Additional features:**
 - 🔧 Auto-installs nvm/rbenv if missing
 - 🎯 Works with shebangs (`#!/usr/bin/env node`)
 - 🛠️ Easy to customize and extend
@@ -22,11 +28,25 @@ cd lazy-wrappers
 ./install.sh
 ```
 
-## Why?
+## Performance
 
-Loading `nvm` can add 200-400ms to every shell startup. That adds up when you're opening terminals all day. With lazy-wrappers, your shell starts instantly and version managers load on-demand.
+**What normally slows shells down:**
+- Traditional shell configs eagerly load version managers like `nvm` and `rbenv` at startup
+- `nvm` initialization alone adds 200-400ms to every new terminal
+- This cost is paid on every shell restart, multiplied across dozens of terminals per day
 
-See detailed [performance analysis](BENCHMARK.md) or run `./benchmark.sh` on your system.
+**What lazy-wrappers defers:**
+- Version manager initialization is skipped at shell startup
+- Loading only happens when you first run a wrapped command (`node`, `npm`, `ruby`, `gem`, etc.)
+- After the first command, wrappers are removed from PATH—subsequent calls have zero overhead
+
+**When the speedup is most noticeable:**
+- Opening new terminal windows/tabs (instant startup vs 200-400ms delay)
+- Frequent shell restarts during development
+- Running quick commands that don't require node/ruby (shell starts fast, no unnecessary loading)
+- Opening multiple terminals simultaneously (each one starts instantly)
+
+Run `./benchmark.sh` on your system to measure the exact improvement.
 
 ## What gets wrapped?
 
@@ -59,9 +79,68 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for more details on adding wrappers.
 
 ## Benchmarks
 
-Run `./benchmark.sh` to measure the impact on your system. See [BENCHMARK.md](BENCHMARK.md) for detailed analysis.
+Run `./benchmark.sh` to measure the impact on your system. The benchmark compares shell startup time and first-command overhead across different configurations.
 
-**TL;DR:** ~96% faster shell startup, ~1ms overhead on first command only (wrappers then removed from PATH).
+### Example Results
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  PART 1: Shell Startup Time                                       │
+└──────────────────────────────────────────────────────────────────┘
+
+  Configuration                         Avg      Min      Max
+  ──────────────────────────────── ──────── ──────── ────────
+  Baseline (no managers)                5ms      5ms      7ms
+  Traditional nvm                     215ms    210ms    220ms
+  Traditional rbenv                    60ms     58ms     64ms
+  lazy-wrappers                         8ms      8ms     10ms
+
+  ✓ vs nvm:   -207ms (96% faster)
+  ✓ vs rbenv: -52ms (86% faster)
+
+┌──────────────────────────────────────────────────────────────────┐
+│  PART 2: First-Command Overhead                                   │
+└──────────────────────────────────────────────────────────────────┘
+
+  Binary          Wrapper     Direct   Overhead        Pct
+  ──────────── ────────── ────────── ────────── ──────────
+  node                7ms        6ms       +1ms      +16%
+  npm                65ms       63ms       +2ms       +3%
+  npx                65ms       63ms       +2ms       +3%
+  ruby               46ms       44ms       +2ms       +4%
+  gem               117ms      116ms       +1ms       +0%
+  bundle            136ms      134ms       +2ms       +1%
+
+┌──────────────────────────────────────────────────────────────────┐
+│  PART 3: Break-Even Analysis                                      │
+└──────────────────────────────────────────────────────────────────┘
+
+  Shell startup savings:      207ms
+  First-command overhead:     1ms (one-time, then wrappers removed)
+  Subsequent commands:        0ms overhead (direct binary execution)
+
+  Verdict:
+  ✓ lazy-wrappers is beneficial for virtually all workflows
+```
+
+### What Was Measured
+
+**Part 1 - Shell Startup Time:**
+Measures the time to spawn a new shell with different configurations. Baseline is a shell with no version managers. Traditional nvm/rbenv load the version manager in the shell config file. lazy-wrappers uses the wrapper approach.
+
+**Part 2 - First-Command Overhead:**
+Measures the one-time cost when running a wrapped command for the first time in a session. This includes the time to load the version manager and execute the binary. After this first command, wrappers are removed from PATH.
+
+**Part 3 - Break-Even:**
+Since wrappers are removed from PATH after the first command, there's no ongoing overhead. All subsequent commands execute at native speed.
+
+### What the Delta Means
+
+**Shell startup:** 207ms saved per new terminal. If you open 20 terminals per day, that's **4+ seconds saved daily**, **30+ minutes per year**.
+
+**First-command overhead:** 1-2ms one-time cost when you first use a wrapped binary in a session. Negligible compared to the 207ms startup savings.
+
+**Net result:** More than **90% faster** shell startup with effectively zero ongoing cost. The savings compound with every new terminal window, tab, or shell restart.
 
 ## Uninstall
 
