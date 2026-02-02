@@ -1,6 +1,6 @@
 ---
-layout: page
-title: lazy-wrappers
+layout: default
+title: Home
 ---
 
 # lazy-wrappers

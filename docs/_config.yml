@@ -1,7 +1,8 @@
 title: lazy-wrappers
 description: Faster shell startup by lazy-loading nvm and rbenv
-theme: cayman
 markdown: kramdown
+kramdown:
+  syntax_highlighter: rouge
 
 header_pages:
   - index.md
@@ -11,3 +12,9 @@ header_pages:
   - benchmarks.md
   - faq.md
   - compatibility.md
+
+# Exclude files from build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - .ruby-lsp
