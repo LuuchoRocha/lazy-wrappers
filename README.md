@@ -136,7 +136,7 @@ Since wrappers are removed from PATH after the first command, there's no ongoing
 
 ### What the Delta Means
 
-**Shell startup:** 207ms saved per new terminal. If you open 20 terminals per day, that's **4+ seconds saved daily**, **30+ minutes per year**.
+**Shell startup:** 207ms saved per new terminal. If you open 20 terminals per day, that's **4.1 seconds saved daily**, **25 minutes per year**.
 
 **First-command overhead:** 1-2ms one-time cost when you first use a wrapped binary in a session. Negligible compared to the 207ms startup savings.
 
