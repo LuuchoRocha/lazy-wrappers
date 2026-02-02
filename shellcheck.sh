@@ -21,9 +21,9 @@ FORMAT="gcc"
 FILES_TO_CHECK=(
     "install.sh"
     "simple_install.sh"
-    "generate_wrappers.sh"
+    "scripts/generate_wrappers.sh"
     "benchmark.sh"
-    "shell_hook.sh"
+    "scripts/shell_hook.sh"
     "uninstall.sh"
 )
 
