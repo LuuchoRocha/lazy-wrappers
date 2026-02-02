@@ -1,6 +1,7 @@
 #!/bin/bash
 # Comprehensive benchmark for lazy-wrappers
 # Tests both shell startup time AND per-command overhead
+# Note: This script uses hardcoded paths to ~/.lazy-wrappers and doesn't need the config file
 
 set -euo pipefail
 

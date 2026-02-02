@@ -15,14 +15,24 @@ NC='\033[0m' # No Color
 
 SCRIPT_SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# Source configuration file
-if [[ ! -f "$SCRIPT_SOURCE_DIR/scripts/config" ]]; then
-    echo "Error: Configuration file not found at $SCRIPT_SOURCE_DIR/scripts/config"
+# Find config file - check multiple possible locations
+# 1. When run from repo root or ~/.lazy-wrappers: ./scripts/config
+# 2. When run as lw-uninstall from commands dir: ../../../scripts/config (relative to bin/commands)
+CONFIG_FILE=""
+if [[ -f "$SCRIPT_SOURCE_DIR/scripts/config" ]]; then
+    CONFIG_FILE="$SCRIPT_SOURCE_DIR/scripts/config"
+elif [[ -f "$SCRIPT_SOURCE_DIR/../../config" ]]; then
+    # Running from scripts/bin/commands/
+    CONFIG_FILE="$SCRIPT_SOURCE_DIR/../../config"
+fi
+
+if [[ -z "$CONFIG_FILE" ]]; then
+    echo "Error: Configuration file not found"
     exit 1
 fi
 
 # shellcheck source=scripts/config
-. "$SCRIPT_SOURCE_DIR/scripts/config"
+. "$CONFIG_FILE"
 
 echo -e "\n${BOLD}${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BOLD}${CYAN}║${NC}             ${BOLD}lazy-wrappers uninstaller${NC}                       ${BOLD}${CYAN}║${NC}"

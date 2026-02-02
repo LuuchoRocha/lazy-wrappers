@@ -16,7 +16,7 @@ Most developer setups load `nvm` and `rbenv` in every new shell—convenient, bu
 
 lazy-wrappers defers version-manager initialization until the moment you actually run a related command. It does this by placing lightweight wrappers earlier in your `PATH`, and then removing those wrappers after the version manager is loaded so subsequent commands run at native speed.
 
-**Result:** ~96% faster shell startup with ~1ms one-time overhead on first command.
+**Result:** ~90% faster shell startup with ~1ms one-time overhead on first command.
 
 ## Quick start
 

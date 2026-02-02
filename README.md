@@ -1,11 +1,11 @@
 # lazy-wrappers
 
-**96% faster shell startup.** Defer loading of `nvm` and `rbenv` until you actually run `node`, `ruby`, or related commands.
+**90% faster shell startup.** Defer loading of `nvm` and `rbenv` until you actually run `node`, `ruby`, or related commands.
 
 Traditional shell configs load version managers eagerly on every terminal session—`nvm` typically adds 200-400ms of startup time. With lazy-wrappers, your shell starts in milliseconds and version managers load on-demand.
 
 **Measured improvements:**
-- Shell startup: **96% faster** vs traditional nvm loading (5-10ms vs 200-400ms)
+- Shell startup: **90% faster** vs traditional nvm loading (5-10ms vs 200-400ms)
 - First command: ~1-2ms one-time overhead to load the version manager
 - Subsequent commands: **zero overhead**—wrappers are removed from PATH after first use
 
