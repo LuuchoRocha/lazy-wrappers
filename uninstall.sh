@@ -4,6 +4,15 @@
 
 set -euo pipefail
 
+# Colors and formatting
+BOLD='\033[1m'
+DIM='\033[2m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
 SCRIPT_SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Source configuration file
@@ -15,10 +24,15 @@ fi
 # shellcheck source=scripts/config
 . "$SCRIPT_SOURCE_DIR/scripts/config"
 
+echo -e "\n${BOLD}${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BOLD}${CYAN}║${NC}             ${BOLD}lazy-wrappers uninstaller${NC}                       ${BOLD}${CYAN}║${NC}"
+echo -e "${BOLD}${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}\n"
+
+echo -e "${BOLD}→ Cleaning shell configuration${NC}"
+
 # Remove PATH reference from all shell configuration files
 for RC_FILE in "${RC_FILES[@]}"; do
     if [[ -f "$RC_FILE" ]]; then
-        echo "Removing lazy-wrappers from $RC_FILE..."
         if cp "$RC_FILE" "${RC_FILE}.bak"; then
             # Use portable sed syntax (works on both GNU and BSD/macOS sed)
             # Create temporary file and move it back to preserve permissions
@@ -26,44 +40,41 @@ for RC_FILE in "${RC_FILES[@]}"; do
               -e '\#lazy-wrappers:#d' \
               -e "\#$NODE_WRAPPERS_DIR#d" \
               -e "\#$RUBY_WRAPPERS_DIR#d" \
+              -e "\#$COMMANDS_DIR#d" \
               -e '\#shell_hook.sh#d' \
               "$RC_FILE" > "${RC_FILE}.tmp" && mv "${RC_FILE}.tmp" "$RC_FILE" || {
-                echo "Error: Failed to modify $RC_FILE"
-                echo "Backup available at ${RC_FILE}.bak"
+                echo -e "  ${RED}✗ Error:${NC} Failed to modify $RC_FILE"
+                echo -e "    ${DIM}Backup available at ${RC_FILE}.bak${NC}"
                 rm -f "${RC_FILE}.tmp"
                 continue
               }
             # Remove any empty lines left at the end
             sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' "$RC_FILE" > "${RC_FILE}.tmp" && mv "${RC_FILE}.tmp" "$RC_FILE"
-            echo "  Done. Backup: ${RC_FILE}.bak"
+            echo -e "  ${GREEN}✓${NC} $RC_FILE ${DIM}(cleaned)${NC}"
         else
-            echo "Warning: Failed to create backup of $RC_FILE, skipping"
+            echo -e "  ${YELLOW}⚠ Warning:${NC} Failed to create backup of $RC_FILE, skipping"
         fi
     else
-        echo "File $RC_FILE does not exist. No changes made."
+        echo -e "  ${DIM}─${NC} $RC_FILE ${DIM}(not found, skipped)${NC}"
     fi
 done
 
-# Ask about removing the installation directory
-echo ""
+# Remove the installation directory
+echo -e "\n${BOLD}→ Removing installation${NC}"
 if [[ -d "$INSTALL_DIR" ]]; then
-    read -p "Remove $INSTALL_DIR? [y/N] " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        if rm -rf "$INSTALL_DIR"; then
-            echo "Removed $INSTALL_DIR"
-        else
-            echo "Error: Failed to remove $INSTALL_DIR"
-            exit 1
-        fi
+    if rm -rf "$INSTALL_DIR"; then
+        echo -e "  ${GREEN}✓${NC} Removed $INSTALL_DIR"
     else
-        echo "Kept $INSTALL_DIR"
+        echo -e "  ${RED}✗ Error:${NC} Failed to remove $INSTALL_DIR"
+        exit 1
     fi
 else
-    echo "$INSTALL_DIR does not exist, nothing to remove"
+    echo -e "  ${DIM}─${NC} $INSTALL_DIR ${DIM}(not found, skipped)${NC}"
 fi
 
-echo ""
-echo "Uninstallation completed."
-echo "Please restart your terminal or run: source ${RC_FILES[0]}"
+echo -e "\n${GREEN}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}${BOLD}║${NC}           ${GREEN}${BOLD}✓ Uninstallation completed successfully${NC}          ${GREEN}${BOLD}║${NC}"
+echo -e "${GREEN}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}"
+
+echo -e "\n${BOLD}Next step:${NC} Restart your terminal to apply changes.\n"
 exit 0

@@ -5,6 +5,25 @@ All notable changes to lazy-wrappers will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.4] - 2026-02-02
+
+### ✨ Improved
+
+- **Enhanced UI** — Colorful output with box-drawing characters, progress indicators, and better formatting for both installer and uninstaller
+- **Selective file copying** — Install now copies only required files (`install.sh`, `uninstall.sh`, `benchmark.sh`, `scripts/**`) instead of the entire repository
+- **New commands directory** — Added `scripts/bin/commands/` with `lw-uninstall` and `lw-benchmark` commands accessible from PATH
+
+### 🐛 Fixed
+
+- **Static wrappers not copied** — Fixed bug where `nvm` and `rbenv` static wrappers weren't being copied during installation, causing them to be unavailable until another wrapper loaded them
+- **Malformed sed command** — Fixed broken line continuation in uninstall.sh that prevented proper cleanup of shell config files
+
+### 🔧 Changed
+
+- Wrapper generator now properly skips static wrappers (`nvm`, `rbenv`) that have hand-crafted implementations
+- Added `nvm:nvm` and `rbenv:rbenv` entries to `wrappers.conf` for documentation purposes
+- PATH now includes the commands directory for `lw-*` utilities
+
 ## [0.0.1] - 2026-02-01
 
 ### 🎉 Initial Release
@@ -75,4 +94,5 @@ After the first command in a session, wrappers are removed from PATH — all sub
 
 ---
 
+[0.0.4]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/v0.0.4
 [0.0.1]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/v0.0.1

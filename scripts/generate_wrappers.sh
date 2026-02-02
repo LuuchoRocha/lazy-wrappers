@@ -204,6 +204,11 @@ generate_all_wrappers() {
         binary_name=$(echo "$binary_name" | xargs)
         loader=$(echo "$loader" | xargs)
         
+        # Skip static wrappers (nvm, rbenv) - they have hand-crafted implementations
+        if is_static_wrapper "$binary_name"; then
+            continue
+        fi
+        
         # Validate loader type
         case "$loader" in
             nvm)

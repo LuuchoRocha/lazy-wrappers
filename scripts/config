@@ -9,6 +9,7 @@ set -euo pipefail
 INSTALL_DIR="$HOME/.lazy-wrappers"
 NODE_WRAPPERS_DIR="$INSTALL_DIR/scripts/bin/node_wrappers"
 RUBY_WRAPPERS_DIR="$INSTALL_DIR/scripts/bin/ruby_wrappers"
+COMMANDS_DIR="$INSTALL_DIR/scripts/bin/commands"
 
 # Detect current shell (with fallback to bash)
 USER_SHELL="$(basename "${SHELL:-/bin/bash}")"

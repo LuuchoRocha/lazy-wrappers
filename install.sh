@@ -4,6 +4,15 @@
 
 set -euo pipefail
 
+# Colors and formatting
+BOLD='\033[1m'
+DIM='\033[2m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
 SCRIPT_SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Source configuration file
@@ -17,42 +26,85 @@ fi
 
 # Validate prerequisites
 if ! command -v git &>/dev/null; then
-    echo "Warning: git is not installed. It will be required if nvm or rbenv need to be cloned."
+    echo -e "${YELLOW}⚠ Warning:${NC} git is not installed. It will be required if nvm or rbenv need to be cloned."
 fi
 
-# Copy the entire project to ~/.lazy-wrappers
-echo "Installing lazy-wrappers to $INSTALL_DIR..."
-if ! cp --recursive --dereference "$SCRIPT_SOURCE_DIR" "$INSTALL_DIR"; then
-    echo "Error: Failed to copy files to $INSTALL_DIR"
-    exit 1
+echo -e "\n${BOLD}${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BOLD}${CYAN}║${NC}              ${BOLD}lazy-wrappers installer${NC}                       ${BOLD}${CYAN}║${NC}"
+echo -e "${BOLD}${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}\n"
+
+# Create installation directory
+echo -e "${BOLD}→ Installing to${NC} ${CYAN}$INSTALL_DIR${NC}"
+mkdir -p "$INSTALL_DIR/scripts/bin/node_wrappers" "$INSTALL_DIR/scripts/bin/ruby_wrappers" "$INSTALL_DIR/scripts/bin/commands"
+
+# Copy only the required files
+echo -e "${DIM}  Copying core files...${NC}"
+FILES_TO_COPY=(install.sh uninstall.sh benchmark.sh)
+for file in "${FILES_TO_COPY[@]}"; do
+    if [[ -f "$SCRIPT_SOURCE_DIR/$file" ]]; then
+        if ! cp -f "$SCRIPT_SOURCE_DIR/$file" "$INSTALL_DIR/"; then
+            echo -e "${RED}✗ Error:${NC} Failed to copy $file to $INSTALL_DIR"
+            exit 1
+        fi
+    fi
+done
+
+# Copy scripts directory (excluding bin subdirectories which will be generated)
+echo -e "${DIM}  Copying scripts...${NC}"
+for file in "$SCRIPT_SOURCE_DIR/scripts"/*; do
+    if [[ -f "$file" ]]; then
+        if ! cp -f "$file" "$INSTALL_DIR/scripts/"; then
+            echo -e "${RED}✗ Error:${NC} Failed to copy $(basename "$file") to $INSTALL_DIR/scripts/"
+            exit 1
+        fi
+    fi
+done
+
+# Copy static wrappers (nvm, rbenv) that are not generated dynamically
+echo -e "${DIM}  Copying static wrappers...${NC}"
+if [[ -f "$SCRIPT_SOURCE_DIR/scripts/bin/node_wrappers/nvm" ]]; then
+    cp -f "$SCRIPT_SOURCE_DIR/scripts/bin/node_wrappers/nvm" "$NODE_WRAPPERS_DIR/"
+fi
+if [[ -f "$SCRIPT_SOURCE_DIR/scripts/bin/ruby_wrappers/rbenv" ]]; then
+    cp -f "$SCRIPT_SOURCE_DIR/scripts/bin/ruby_wrappers/rbenv" "$RUBY_WRAPPERS_DIR/"
 fi
 
-rm -rf "$INSTALL_DIR/.git" 2>/dev/null || true
+# Create lw-* commands in the commands directory
+echo -e "${DIM}  Creating commands...${NC}"
+if [[ -f "$INSTALL_DIR/uninstall.sh" ]]; then
+    cp -f "$INSTALL_DIR/uninstall.sh" "$COMMANDS_DIR/lw-uninstall"
+    chmod +x "$COMMANDS_DIR/lw-uninstall"
+fi
+if [[ -f "$INSTALL_DIR/benchmark.sh" ]]; then
+    cp -f "$INSTALL_DIR/benchmark.sh" "$COMMANDS_DIR/lw-benchmark"
+    chmod +x "$COMMANDS_DIR/lw-benchmark"
+fi
 
 # Generate all wrapper scripts from wrappers.conf
+echo -e "${DIM}  Generating wrappers...${NC}"
 if [[ ! -f "$INSTALL_DIR/scripts/generate_wrappers.sh" ]]; then
-    echo "Error: Wrapper generator script not found"
+    echo -e "${RED}✗ Error:${NC} Wrapper generator script not found"
     exit 1
 fi
 
 chmod +x "$INSTALL_DIR/scripts/generate_wrappers.sh"
-if ! "$INSTALL_DIR/scripts/generate_wrappers.sh"; then
-    echo "Error: Failed to generate wrapper scripts"
+if ! "$INSTALL_DIR/scripts/generate_wrappers.sh" >/dev/null; then
+    echo -e "${RED}✗ Error:${NC} Failed to generate wrapper scripts"
     exit 1
 fi
 
 # Make wrapper scripts executable
 if [[ -d "$NODE_WRAPPERS_DIR" ]] && [[ -n "$(ls -A "$NODE_WRAPPERS_DIR" 2>/dev/null)" ]]; then
     if ! chmod +x "$NODE_WRAPPERS_DIR"/* 2>/dev/null; then
-        echo "Warning: Failed to make some node wrappers executable"
-        echo "You may need to run: chmod +x $NODE_WRAPPERS_DIR/*"
+        echo -e "${YELLOW}⚠ Warning:${NC} Failed to make some node wrappers executable"
+        echo -e "  You may need to run: ${DIM}chmod +x $NODE_WRAPPERS_DIR/*${NC}"
     fi
 fi
 
 if [[ -d "$RUBY_WRAPPERS_DIR" ]] && [[ -n "$(ls -A "$RUBY_WRAPPERS_DIR" 2>/dev/null)" ]]; then
     if ! chmod +x "$RUBY_WRAPPERS_DIR"/* 2>/dev/null; then
-        echo "Warning: Failed to make some ruby wrappers executable"
-        echo "You may need to run: chmod +x $RUBY_WRAPPERS_DIR/*"
+        echo -e "${YELLOW}⚠ Warning:${NC} Failed to make some ruby wrappers executable"
+        echo -e "  You may need to run: ${DIM}chmod +x $RUBY_WRAPPERS_DIR/*${NC}"
     fi
 fi
 
@@ -65,8 +117,10 @@ done
 # The lines we'll add to RC files
 # Use a guard to prevent duplicate PATH entries when shell config is sourced multiple times
 PATH_COMMENT="# lazy-wrappers: Add wrapper scripts to PATH and load shell hook"
-PATH_EXPORT="[[ \":\$PATH:\" != *\":$NODE_WRAPPERS_DIR:\"* ]] && export PATH=\"$NODE_WRAPPERS_DIR:$RUBY_WRAPPERS_DIR:\$PATH\""
+PATH_EXPORT="[[ \":\$PATH:\" != *\":$NODE_WRAPPERS_DIR:\"* ]] && export PATH=\"$NODE_WRAPPERS_DIR:$RUBY_WRAPPERS_DIR:$COMMANDS_DIR:\$PATH\""
 HOOK_SOURCE=". \"$INSTALL_DIR/scripts/shell_hook.sh\""
+
+echo -e "\n${BOLD}→ Configuring shell${NC}"
 
 # Process each RC file to add PATH
 for RC_FILE in "${RC_FILES[@]}"; do
@@ -74,55 +128,48 @@ for RC_FILE in "${RC_FILES[@]}"; do
     if [[ -f "$RC_FILE" ]]; then
         RC_BACKUP="${RC_FILE}.backup-$(date +%Y%m%d%H%M%S)"
         if cp "$RC_FILE" "$RC_BACKUP"; then
-            echo "Backup of $RC_FILE saved as $RC_BACKUP"
+            echo -e "  ${DIM}Backup saved: $RC_BACKUP${NC}"
         else
-            echo "Warning: Failed to create backup of $RC_FILE"
+            echo -e "  ${YELLOW}⚠ Warning:${NC} Failed to create backup of $RC_FILE"
         fi
     else
         # Create the RC file if it doesn't exist
         if ! touch "$RC_FILE" 2>/dev/null; then
-            echo "Warning: Cannot create $RC_FILE, skipping"
+            echo -e "  ${YELLOW}⚠ Warning:${NC} Cannot create $RC_FILE, skipping"
             continue
         fi
     fi
 
     # Check if already installed
     if [[ -f "$RC_FILE" ]] && grep -qF "lazy-wrappers" "$RC_FILE"; then
-        echo "lazy-wrappers is already configured in $RC_FILE"
+        echo -e "  ${GREEN}✓${NC} $RC_FILE ${DIM}(already configured)${NC}"
     else
-        echo "Adding lazy-wrappers to $RC_FILE..."
         {
             echo ""
             echo "$PATH_COMMENT"
             echo "$PATH_EXPORT"
             echo "$HOOK_SOURCE"
         } >> "$RC_FILE" || {
-            echo "Error: Failed to modify $RC_FILE"
+            echo -e "  ${RED}✗ Error:${NC} Failed to modify $RC_FILE"
             continue
         }
-        echo "$RC_FILE modified"
+        echo -e "  ${GREEN}✓${NC} $RC_FILE ${DIM}(configured)${NC}"
     fi
 done
 
 # Print success message
-echo ""
-echo "Installation completed successfully."
-echo ""
-echo "Installed to: $INSTALL_DIR"
-echo "Node wrappers (node, npm, npx, yarn, pnpm, nvm): $NODE_WRAPPERS_DIR"
-echo "Ruby wrappers (ruby, gem, rbenv): $RUBY_WRAPPERS_DIR"
-echo ""
-echo "Modified configuration files:"
-for RC_FILE in "${RC_FILES[@]}"; do
-    echo "  - $RC_FILE"
-done
-echo ""
-echo "To apply the changes, either:"
-echo "  1. Log out and log back in (recommended for GUI apps)"
-echo "  2. Run: source ${RC_FILES[0]}"
-echo "  3. Or restart your terminal"
-echo ""
-echo "To check that everything works, you can use commands like:"
-echo "  node --version"
-echo "  ruby --version"
+echo -e "\n${GREEN}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}${BOLD}║${NC}            ${GREEN}${BOLD}✓ Installation completed successfully${NC}           ${GREEN}${BOLD}║${NC}"
+echo -e "${GREEN}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}"
+
+echo -e "\n${BOLD}Installed locations:${NC}"
+echo -e "  ${DIM}Base directory:${NC}   $INSTALL_DIR"
+echo -e "  ${DIM}Node wrappers:${NC}    $NODE_WRAPPERS_DIR"
+echo -e "  ${DIM}Ruby wrappers:${NC}    $RUBY_WRAPPERS_DIR"
+
+echo -e "\n${BOLD}Next steps:${NC}"
+echo -e "  ${CYAN}1.${NC} Restart your terminal ${DIM}(or run: source ${RC_FILES[0]})${NC}"
+echo -e "  ${CYAN}2.${NC} Test with: ${CYAN}node --version${NC} or ${CYAN}ruby --version${NC}"
+
+echo -e "\n${DIM}Tip: Your shell will now start faster! nvm/rbenv load only when needed.${NC}\n"
 exit 0
