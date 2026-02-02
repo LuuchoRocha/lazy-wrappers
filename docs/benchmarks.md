@@ -32,11 +32,11 @@ cd lazy-wrappers
 
 | Configuration | Startup time |
 |---------------|--------------|
-| Baseline (no managers) | 5ms |
-| lazy-wrappers | 8ms |
-| Traditional rbenv | 60ms |
-| Traditional nvm | 215ms |
-| Traditional nvm + rbenv | ~275ms |
+| Baseline (no managers) | 6ms |
+| lazy-wrappers | 9ms |
+| Traditional rbenv | 67ms |
+| Traditional nvm | 245ms |
+| Traditional nvm + rbenv | ~312ms |
 
 ### Takeaway
 
@@ -52,14 +52,14 @@ The first wrapped command checks state, loads the manager if needed, then runs t
 
 | Binary | Via wrapper | Direct | Overhead |
 |--------|-------------|--------|----------|
-| node | 7ms | 6ms | +1ms |
-| npm | 65ms | 63ms | +2ms |
-| npx | 65ms | 63ms | +2ms |
-| ruby | 46ms | 44ms | +2ms |
-| gem | 117ms | 116ms | +1ms |
-| bundle | 136ms | 134ms | +2ms |
+| node | 8ms | 7ms | +1ms |
+| npm | 65ms | 64ms | +1ms |
+| npx | 66ms | 65ms | +1ms |
+| ruby | 50ms | 49ms | +1ms |
+| gem | 121ms | 120ms | +1ms |
+| bundle | 139ms | 138ms | +1ms |
 
-Average first-command overhead in this run: about 1-2ms.
+Average first-command overhead in this run: about 1ms.
 
 ## Why there is no ongoing overhead
 

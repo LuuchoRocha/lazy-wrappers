@@ -48,13 +48,13 @@ Since wrappers are removed from PATH after the first command, there's no break-e
 
   Configuration                         Avg      Min      Max
   ──────────────────────────────── ──────── ──────── ────────
-  Baseline (no managers)                5ms      5ms      7ms
-  Traditional nvm                     215ms    210ms    220ms
-  Traditional rbenv                    60ms     58ms     64ms
-  lazy-wrappers                         8ms      8ms     10ms
+  Baseline (no managers)                6ms      5ms      8ms
+  Traditional nvm                     245ms    237ms    254ms
+  Traditional rbenv                    67ms     63ms    101ms
+  lazy-wrappers                         9ms      9ms     13ms
 
-  ✓ vs nvm:   -207ms (96% faster)
-  ✓ vs rbenv: -52ms (86% faster)
+  ✓ vs nvm:   -236ms (96% faster)
+  ✓ vs rbenv: -58ms (86% faster)
 
 ┌──────────────────────────────────────────────────────────────────┐
 │  PART 2: First-Command Overhead                                   │
@@ -62,18 +62,18 @@ Since wrappers are removed from PATH after the first command, there's no break-e
 
   Binary          Wrapper     Direct   Overhead        Pct
   ──────────── ────────── ────────── ────────── ──────────
-  node                7ms        6ms       +1ms      +16%
-  npm                65ms       63ms       +2ms       +3%
-  npx                65ms       63ms       +2ms       +3%
-  ruby               46ms       44ms       +2ms       +4%
-  gem               117ms      116ms       +1ms       +0%
-  bundle            136ms      134ms       +2ms       +1%
+  node                8ms        7ms       +1ms      +14%
+  npm                65ms       64ms       +1ms       +1%
+  npx                66ms       65ms       +1ms       +1%
+  ruby               50ms       49ms       +1ms       +2%
+  gem               121ms      120ms       +1ms       +0%
+  bundle            139ms      138ms       +1ms       +0%
 
 ┌──────────────────────────────────────────────────────────────────┐
 │  PART 3: Break-Even Analysis                                      │
 └──────────────────────────────────────────────────────────────────┘
 
-  Shell startup savings:      207ms
+  Shell startup savings:      236ms
   First-command overhead:     1ms (one-time, then wrappers removed)
   Subsequent commands:        0ms overhead (direct binary execution)
 
@@ -84,7 +84,7 @@ Since wrappers are removed from PATH after the first command, there's no break-e
 ## The trade-offs
 
 **Pros:**
-- Shell starts ~207ms faster (or more with slow nvm setups)
+- Shell starts ~236ms faster (or more with slow nvm setups)
 - Multiple terminal windows don't each pay the startup cost
 - Version managers only load when you actually need them
 - **Zero overhead after first command** — wrappers are removed from PATH
@@ -110,12 +110,12 @@ The benchmark saves machine-readable results to `benchmark-results.txt`:
 
 ```
 shell=/bin/bash
-iterations=100
-baseline_ms=5
-nvm_ms=215
-rbenv_ms=60
-lazy_wrappers_ms=8
-startup_savings_ms=207
+iterations=1000
+baseline_ms=6
+nvm_ms=245
+rbenv_ms=67
+lazy_wrappers_ms=9
+startup_savings_ms=236
 first_command_overhead_ms=1
 subsequent_command_overhead_ms=0
 ```
