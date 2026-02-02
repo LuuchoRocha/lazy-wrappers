@@ -25,16 +25,48 @@ RUBY_WRAPPERS="$LAZY_WRAPPERS_DIR/scripts/bin/ruby_wrappers"
 NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 RBENV_DIR="${RBENV_DIR:-$HOME/.rbenv}"
 
+# Output file
+RESULTS_FILE="benchmark-results.md"
+> "$RESULTS_FILE"
+
+# Function to print to both terminal and file
+out() {
+    echo -e "$1"
+    # Strip ANSI codes for markdown file
+    echo -e "$1" | sed 's/\x1b\[[0-9;]*m//g' >> "$RESULTS_FILE"
+}
+
+# Function to write only to file (for markdown-specific formatting)
+md() {
+    echo -e "$1" >> "$RESULTS_FILE"
+}
+
 # Check prerequisites
 if [[ ! -d "$LAZY_WRAPPERS_DIR" ]]; then
     echo -e "${RED}Error: lazy-wrappers not installed. Run ./install.sh first.${NC}"
     exit 1
 fi
 
+out ""
+md "# 🚀 lazy-wrappers Benchmark Results"
+md ""
+md "![Generated](https://img.shields.io/badge/Generated-$(date '+%Y--%-m--%-d')-blue)"
+md ""
+
 echo -e "${BLUE}╔══════════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║            ${BOLD}lazy-wrappers Comprehensive Benchmark${NC}${BLUE}               ║${NC}"
 echo -e "${BLUE}╚══════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
+
+md "## System Information"
+md ""
+md "| Property | Value |"
+md "|----------|-------|"
+md "| Shell | \`$SHELL_TO_TEST\` |"
+md "| Iterations | $ITERATIONS per test |"
+md "| Date | $(date '+%Y-%m-%d %H:%M:%S') |"
+md ""
+
 echo -e "  Shell:       ${CYAN}$SHELL_TO_TEST${NC}"
 echo -e "  Iterations:  ${CYAN}$ITERATIONS${NC} per test"
 echo -e "  Date:        ${CYAN}$(date '+%Y-%m-%d %H:%M:%S')${NC}"
@@ -118,6 +150,11 @@ echo -e "${BLUE}│  How long does it take to open a new terminal?              
 echo -e "${BLUE}└──────────────────────────────────────────────────────────────────┘${NC}"
 echo ""
 
+md "## ⏱️ Part 1: Shell Startup Time"
+md ""
+md "> How long does it take to open a new terminal?"
+md ""
+
 TEMP_RC="$TEMP_DIR/.bashrc"
 [[ "$SHELL_NAME" == "zsh" ]] && TEMP_RC="$TEMP_DIR/.zshrc"
 
@@ -175,6 +212,15 @@ printf "  %-32s %6dms %6dms %6dms\n" "Baseline (no managers)" "$baseline_avg" "$
 [[ $rbenv_avg -gt 0 ]] && printf "  %-32s %6dms %6dms %6dms\n" "Traditional rbenv" "$rbenv_avg" "$rbenv_min" "$rbenv_max"
 printf "  %-32s %6dms %6dms %6dms\n" "lazy-wrappers" "$lazy_avg" "$lazy_min" "$lazy_max"
 
+# Write markdown table
+md "| Configuration | Avg | Min | Max |"
+md "|:--------------|----:|----:|----:|"
+md "| ⚪ Baseline (no managers) | ${baseline_avg}ms | ${baseline_min}ms | ${baseline_max}ms |"
+[[ $nvm_avg -gt 0 ]] && md "| 🔴 Traditional nvm | ${nvm_avg}ms | ${nvm_min}ms | ${nvm_max}ms |"
+[[ $rbenv_avg -gt 0 ]] && md "| 🟠 Traditional rbenv | ${rbenv_avg}ms | ${rbenv_min}ms | ${rbenv_max}ms |"
+md "| 🟢 **lazy-wrappers** | **${lazy_avg}ms** | ${lazy_min}ms | ${lazy_max}ms |"
+md ""
+
 # Calculate savings
 startup_savings=0
 if [[ $nvm_avg -gt 0 ]]; then
@@ -183,13 +229,16 @@ if [[ $nvm_avg -gt 0 ]]; then
     nvm_pct=$(( (nvm_savings * 100) / nvm_avg ))
     echo ""
     echo -e "  ${GREEN}✓${NC} vs nvm:   ${GREEN}-${nvm_savings}ms${NC} (${GREEN}${nvm_pct}% faster${NC})"
+    md "🟢 **vs nvm:** -${nvm_savings}ms (${nvm_pct}% faster)"
 fi
 if [[ $rbenv_avg -gt 0 ]]; then
     rbenv_savings=$((rbenv_avg - lazy_avg))
     [[ $startup_savings -eq 0 ]] && startup_savings=$rbenv_savings
     rbenv_pct=$(( (rbenv_savings * 100) / rbenv_avg ))
     echo -e "  ${GREEN}✓${NC} vs rbenv: ${GREEN}-${rbenv_savings}ms${NC} (${GREEN}${rbenv_pct}% faster${NC})"
+    md "🟢 **vs rbenv:** -${rbenv_savings}ms (${rbenv_pct}% faster)"
 fi
+md ""
 
 # ============================================================================
 # PART 2: Per-Command Overhead
@@ -202,6 +251,11 @@ echo -e "${BLUE}│  One-time cost when wrapper triggers version manager load   
 echo -e "${BLUE}│  (Subsequent commands bypass wrappers entirely - zero overhead) │${NC}"
 echo -e "${BLUE}└──────────────────────────────────────────────────────────────────┘${NC}"
 echo ""
+
+md "## ⚡ Part 2: First-Command Overhead"
+md ""
+md "*One-time cost when wrapper triggers version manager load. Subsequent commands bypass wrappers entirely — **zero overhead**.*"
+md ""
 
 # Ensure version managers are loaded
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
@@ -216,6 +270,9 @@ fi
 
 printf "  ${BOLD}%-12s %10s %10s %10s %10s${NC}\n" "Binary" "Wrapper" "Direct" "Overhead" "Pct"
 printf "  %-12s %10s %10s %10s %10s\n" "────────────" "──────────" "──────────" "──────────" "──────────"
+
+md "| Binary | Wrapper | Direct | Overhead |"
+md "|:-------|--------:|-------:|---------:|"
 
 total_overhead=0
 count=0
@@ -254,8 +311,20 @@ for binary in node npm npx ruby gem bundle; do
         
         printf "  %-12s %8dms %8dms ${color}%+8dms %+8d%%${NC}\n" \
             "$binary" "$wrap_avg" "$real_avg" "$overhead" "$overhead_pct"
+        
+        # Choose emoji based on overhead
+        if [[ $overhead -le 1 ]]; then
+            overhead_emoji="🟢"
+        elif [[ $overhead -le 3 ]]; then
+            overhead_emoji="🟡"
+        else
+            overhead_emoji="🟠"
+        fi
+        md "| \`$binary\` | ${wrap_avg}ms | ${real_avg}ms | ${overhead_emoji} +${overhead}ms |"
     fi
 done
+
+md ""
 
 # Calculate average overhead
 if [[ $count -gt 0 ]]; then
@@ -275,6 +344,9 @@ echo -e "${BLUE}│  ${BOLD}PART 3: Break-Even Analysis${NC}${BLUE}             
 echo -e "${BLUE}└──────────────────────────────────────────────────────────────────┘${NC}"
 echo ""
 
+md "## 📊 Part 3: Break-Even Analysis"
+md ""
+
 echo -e "  Shell startup savings:      ${GREEN}${startup_savings}ms${NC}"
 echo -e "  First-command overhead:     ${YELLOW}${avg_overhead}ms${NC} (one-time, then wrappers removed)"
 echo -e "  Subsequent commands:        ${GREEN}0ms overhead${NC} (direct binary execution)"
@@ -283,6 +355,15 @@ echo -e "  ${BOLD}Verdict:${NC}"
 echo -e "  ${GREEN}✓${NC} lazy-wrappers is beneficial for virtually all workflows"
 echo -e "    After the first command, wrappers are removed from PATH"
 echo -e "    All subsequent commands run at full native speed"
+
+md "| Metric | Value |"
+md "|:-------|------:|"
+md "| 🟢 Shell startup savings | **${startup_savings}ms** |"
+md "| 🟡 First-command overhead | ${avg_overhead}ms *(one-time)* |"
+md "| 🟢 Subsequent commands | **0ms** |"
+md ""
+md "**✅ Verdict:** lazy-wrappers is beneficial for virtually all workflows. After the first command, wrappers are removed from PATH and all subsequent commands run at full native speed."
+md ""
 
 # ============================================================================
 # Summary
@@ -308,21 +389,29 @@ echo -e "    • Quick shell commands before using node/ruby"
 echo -e "    • Development with moderate node/ruby usage"
 echo ""
 
-# Save results
-RESULTS_FILE="benchmark-results.txt"
-{
-    echo "# lazy-wrappers benchmark results"
-    echo "# Generated: $(date -Iseconds)"
-    echo "shell=$SHELL_TO_TEST"
-    echo "iterations=$ITERATIONS"
-    echo "baseline_ms=$baseline_avg"
-    echo "nvm_ms=$nvm_avg"
-    echo "rbenv_ms=$rbenv_avg"
-    echo "lazy_wrappers_ms=$lazy_avg"
-    echo "startup_savings_ms=$startup_savings"
-    echo "first_command_overhead_ms=$avg_overhead"
-    echo "subsequent_command_overhead_ms=0"
-} > "$RESULTS_FILE"
+md "## 📋 Summary"
+md ""
+md "### 🟢 Pros"
+md ""
+md "- ⚡ Shell starts **~${startup_savings}ms faster**"
+md "- 💤 Version managers load only when needed"
+md "- 🪟 Multiple terminals don't each pay startup cost"
+md ""
+md "### 🟡 Cons"
+md ""
+md "- First command in session triggers version manager load"
+md "- ~${avg_overhead}ms one-time overhead on that first command"
+md ""
+md "### 🎯 Best For"
+md ""
+md "- Opening many terminal sessions"
+md "- Quick shell commands before using node/ruby"
+md "- Development with moderate node/ruby usage"
+md ""
+md "---"
+md ""
+md "*Run \`./benchmark.sh\` to regenerate these results on your system.*"
+md ""
 
 echo -e "  Results saved to: ${CYAN}$RESULTS_FILE${NC}"
 echo ""
