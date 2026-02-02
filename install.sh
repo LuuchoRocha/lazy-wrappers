@@ -63,8 +63,9 @@ for script in nvmload rbenvload shell_hook.sh; do
 done
 
 # The lines we'll add to RC files
+# Use a guard to prevent duplicate PATH entries when shell config is sourced multiple times
 PATH_COMMENT="# lazy-wrappers: Add wrapper scripts to PATH and load shell hook"
-PATH_EXPORT="export PATH=\"$NODE_WRAPPERS_DIR:$RUBY_WRAPPERS_DIR:\$PATH\""
+PATH_EXPORT="[[ \":\$PATH:\" != *\":$NODE_WRAPPERS_DIR:\"* ]] && export PATH=\"$NODE_WRAPPERS_DIR:$RUBY_WRAPPERS_DIR:\$PATH\""
 HOOK_SOURCE=". \"$INSTALL_DIR/scripts/shell_hook.sh\""
 
 # Process each RC file to add PATH

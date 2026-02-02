@@ -50,10 +50,12 @@ if [[ -n "${__LAZY_WRAPPERS_LOADING___BINARY__:-}" ]]; then
 fi
 export __LAZY_WRAPPERS_LOADING___BINARY__=1
 
-# Remove wrapper directory from PATH FIRST to prevent recursion
+# Remove ALL occurrences of wrapper directory from PATH to prevent recursion
 WRAPPER_DIR="__NODE_WRAPPERS__"
 PATH=":$PATH:"
-PATH="${PATH//:$WRAPPER_DIR:/:}"
+while [[ "$PATH" == *":$WRAPPER_DIR:"* ]]; do
+    PATH="${PATH//:$WRAPPER_DIR:/:}"
+done
 PATH="${PATH#:}"
 PATH="${PATH%:}"
 export PATH
@@ -111,10 +113,12 @@ if [[ -n "${__LAZY_WRAPPERS_LOADING___BINARY__:-}" ]]; then
 fi
 export __LAZY_WRAPPERS_LOADING___BINARY__=1
 
-# Remove wrapper directory from PATH FIRST to prevent recursion
+# Remove ALL occurrences of wrapper directory from PATH to prevent recursion
 WRAPPER_DIR="__RUBY_WRAPPERS__"
 PATH=":$PATH:"
-PATH="${PATH//:$WRAPPER_DIR:/:}"
+while [[ "$PATH" == *":$WRAPPER_DIR:"* ]]; do
+    PATH="${PATH//:$WRAPPER_DIR:/:}"
+done
 PATH="${PATH#:}"
 PATH="${PATH%:}"
 export PATH
