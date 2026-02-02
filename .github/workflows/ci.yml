@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+# Set minimal permissions for GITHUB_TOKEN (security best practice)
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    name: Validate GitHub Actions Workflows
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install actionlint
+        run: |
+          # Download and install actionlint from official GitHub releases
+          ACTIONLINT_VERSION="1.7.10"
+          curl -fsSL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" -o actionlint.tar.gz
+          tar -xzf actionlint.tar.gz actionlint
+          chmod +x actionlint
+          ./actionlint -version
+
+      - name: Run actionlint
+        run: |
+          # Run actionlint on all workflow files
+          # Errors will cause the job to fail due to actionlint's exit code
+          ./actionlint -color
+
+  shellcheck:
+    name: ShellCheck Linting
+    runs-on: ubuntu-latest
+    needs: actionlint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        run: |
+          # Check the same files as ./shellcheck.sh
+          shellcheck --severity=warning --format=gcc \
+            install.sh \
+            simple_install.sh \
+            generate_wrappers.sh \
+            benchmark.sh \
+            shell_hook.sh \
+            uninstall.sh
+
+  test-install:
+    name: Test Installation
+    runs-on: ${{ matrix.os }}
+    needs: actionlint
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        shell: [bash, zsh]
+        exclude:
+          # zsh not default on older ubuntu
+          - os: ubuntu-latest
+            shell: zsh
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup shell
+        if: matrix.shell == 'zsh'
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            # zsh is default on macOS
+            echo "Using default zsh"
+          fi
+
+      - name: Run installation
+        shell: bash
+        run: |
+          ./install.sh
+
+      - name: Verify installation
+        shell: bash
+        run: ./.github/scripts/verify-installation.sh
+
+      - name: Test wrapper generation
+        shell: bash
+        run: ./.github/scripts/test-wrapper-generation.sh
+
+      - name: Test uninstallation
+        shell: bash
+        run: ./.github/scripts/test-uninstallation.sh .
+
+  test-wrapper-execution:
+    name: Test Wrapper Execution
+    runs-on: ubuntu-latest
+    needs: actionlint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git
+
+      - name: Run installation
+        shell: bash
+        run: |
+          ./install.sh
+
+      - name: Test node wrapper with nvm install
+        shell: bash
+        run: ./.github/scripts/test-node-wrapper.sh
+
+      - name: Test ruby wrapper with rbenv install
+        shell: bash
+        run: ./.github/scripts/test-ruby-wrapper.sh
+
+  validate-config:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+    needs: actionlint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate wrappers.conf format
+        shell: bash
+        run: ./.github/scripts/validate-wrappers-conf.sh .
+
+  benchmark:
+    name: Run Benchmarks
+    runs-on: ubuntu-latest
+    needs: actionlint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git time
+
+      - name: Run installation
+        shell: bash
+        run: |
+          ./install.sh
+
+      - name: Run benchmark
+        shell: bash
+        run: |
+          # Run with fewer iterations for CI
+          ./benchmark.sh 5 || echo "Benchmark completed with warnings"
+
+          # Display results if available
+          if [[ -f benchmark-results.txt ]]; then
+            echo "Benchmark results:"
+            cat benchmark-results.txt
+          fi

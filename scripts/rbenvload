@@ -1,0 +1,67 @@
+#!/bin/bash
+# Lazy loader for rbenv (Ruby Environment Manager)
+# Auto-clones rbenv and ruby-build if not installed, then loads it
+
+# Exit early if already loaded
+if [[ -n "$RBENV_ALREADY_LOADED" ]]; then
+    return 0 2>/dev/null || exit 0
+fi
+
+# Set default rbenv directory if not set
+[[ -z "$RBENV_DIR" ]] && export RBENV_DIR="$HOME/.rbenv"
+
+# Validate git is available before attempting clone
+if ! command -v git >/dev/null 2>&1; then
+    echo "Error: git is required to install rbenv but is not installed." >&2
+    echo "Please install git and try again." >&2
+    return 1 2>/dev/null || exit 1
+fi
+
+# Clone rbenv and ruby-build if not installed
+if [[ ! -d "$RBENV_DIR" ]]; then
+    echo "Installing rbenv to $RBENV_DIR..." >&2
+    if ! git clone --quiet https://github.com/rbenv/rbenv.git "$RBENV_DIR"; then
+        echo "Error: Failed to clone rbenv from GitHub" >&2
+        return 1 2>/dev/null || exit 1
+    fi
+    
+    # Clone ruby-build plugin
+    if ! mkdir -p "$RBENV_DIR/plugins"; then
+        echo "Warning: Failed to create plugins directory" >&2
+    fi
+    
+    # Check if ruby-build already exists
+    if [[ ! -d "$RBENV_DIR/plugins/ruby-build" ]]; then
+        if ! git clone --quiet https://github.com/rbenv/ruby-build.git "$RBENV_DIR/plugins/ruby-build"; then
+            echo "Warning: Failed to clone ruby-build plugin" >&2
+            echo "You may need to install it manually for full rbenv functionality" >&2
+            echo "See: https://github.com/rbenv/ruby-build#installation" >&2
+        fi
+    fi
+fi
+
+# Initialize rbenv
+if [[ -x "$RBENV_DIR/bin/rbenv" ]]; then
+    # Detect shell and initialize appropriately
+    if [[ -n "${ZSH_VERSION:-}" ]]; then
+        eval "$("$RBENV_DIR/bin/rbenv" init - zsh)"
+    elif [[ -n "${BASH_VERSION:-}" ]]; then
+        eval "$("$RBENV_DIR/bin/rbenv" init - bash)"
+    else
+        # Fallback to bash-style initialization
+        eval "$("$RBENV_DIR/bin/rbenv" init - bash)"
+    fi
+
+    export RBENV_ALREADY_LOADED=1
+    
+    # Create flag file for shell hook if the directory is set
+    if [[ -n "${__LAZY_WRAPPERS_FLAGS_DIR:-}" ]]; then
+        if ! touch "$__LAZY_WRAPPERS_FLAGS_DIR/rbenv_loaded" 2>/dev/null; then
+            # Silently fail - this is not critical, just optimization for shell hook
+            true
+        fi
+    fi
+else
+    echo "Error: rbenv binary not found at $RBENV_DIR/bin/rbenv" >&2
+    return 1 2>/dev/null || exit 1
+fi

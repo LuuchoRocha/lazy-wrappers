@@ -1,0 +1,11 @@
+# ShellCheck configuration for lazy-wrappers
+# Disable warnings for sourced files that may not exist at check time
+disable=SC1091
+# Disable warnings for variables defined in sourced config file (scripts/config)
+disable=SC2154
+
+# Enable all optional checks
+enable=all
+
+# Set shell to bash
+shell=bash

@@ -1,0 +1,68 @@
+#!/bin/bash
+# Configuration for lazy-wrappers
+# Detects shell type and sets appropriate RC files
+# This file is sourced by install.sh and uninstall.sh
+
+set -euo pipefail
+
+# Installation paths
+INSTALL_DIR="$HOME/.lazy-wrappers"
+NODE_WRAPPERS_DIR="$INSTALL_DIR/scripts/bin/node_wrappers"
+RUBY_WRAPPERS_DIR="$INSTALL_DIR/scripts/bin/ruby_wrappers"
+
+# Detect current shell (with fallback to bash)
+USER_SHELL="$(basename "${SHELL:-/bin/bash}")"
+
+# Array to hold shell configuration files
+RC_FILES=()
+
+# Determine which shell configuration files to modify based on detected shell
+# Different shells use different RC files for login vs interactive sessions
+case "$USER_SHELL" in
+    bash)
+        # For bash: .bash_profile (login shells/GUI) and .bashrc (interactive shells)
+        # If .bash_profile doesn't exist, use .profile as fallback
+        if [ -f "$HOME/.bash_profile" ]; then
+            RC_FILES=("$HOME/.bash_profile" "$HOME/.bashrc")
+        else
+            RC_FILES=("$HOME/.profile" "$HOME/.bashrc")
+        fi
+        ;;
+    zsh)
+        # For zsh: .zprofile (login shells/GUI) and .zshrc (interactive shells)
+        RC_FILES=("$HOME/.zprofile" "$HOME/.zshrc")
+        ;;
+    fish)
+        # Fish uses a single configuration file
+        RC_FILES=("$HOME/.config/fish/config.fish")
+        ;;
+    ksh)
+        # Korn shell configuration
+        RC_FILES=("$HOME/.kshrc")
+        ;;
+    tcsh)
+        # TCSH configuration
+        RC_FILES=("$HOME/.tcshrc")
+        ;;
+    csh)
+        # C shell configuration
+        RC_FILES=("$HOME/.cshrc")
+        ;;
+    dash|sh)
+        # POSIX-compliant shells typically use .profile
+        RC_FILES=("$HOME/.profile")
+        ;;
+    *)
+        # Unsupported shell - warn but provide fallback
+        echo "Warning: Unsupported shell: $USER_SHELL"
+        echo "Defaulting to .profile for shell configuration."
+        echo "Please manually add $NODE_WRAPPERS_DIR and $RUBY_WRAPPERS_DIR to your PATH if needed."
+        RC_FILES=("$HOME/.profile")
+        ;;
+esac
+
+# Validate that we have at least one RC file
+if [[ ${#RC_FILES[@]} -eq 0 ]]; then
+    echo "Error: No shell configuration files identified"
+    exit 1
+fi

@@ -1,0 +1,11 @@
+# lazy-wrappers benchmark results
+# Generated: 2026-02-02T01:58:18-03:00
+shell=/usr/bin/bash
+iterations=100
+baseline_ms=5
+nvm_ms=215
+rbenv_ms=60
+lazy_wrappers_ms=8
+startup_savings_ms=207
+first_command_overhead_ms=1
+subsequent_command_overhead_ms=0

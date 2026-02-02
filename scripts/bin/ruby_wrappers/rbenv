@@ -1,0 +1,34 @@
+#!/bin/bash
+# Static wrapper for rbenv
+# This wrapper ensures rbenv is properly loaded before running
+
+# Prevent infinite recursion
+if [[ -n "${__LAZY_WRAPPERS_RBENV_LOADING:-}" ]]; then
+    echo "Error: rbenv wrapper recursion detected. Check your PATH configuration." >&2
+    exit 1
+fi
+export __LAZY_WRAPPERS_RBENV_LOADING=1
+
+# Remove wrapper directory from PATH FIRST to prevent recursion
+WRAPPER_DIR="$(cd "$(dirname "$0")" && pwd)"
+PATH=":$PATH:"
+PATH="${PATH//:$WRAPPER_DIR:/:}"
+PATH="${PATH#:}"
+PATH="${PATH%:}"
+export PATH
+
+# Load rbenv if not already available
+if ! command -v rbenv &>/dev/null; then
+    SCRIPT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+    if [[ -f "$SCRIPT_DIR/rbenvload" ]]; then
+        . "$SCRIPT_DIR/rbenvload"
+    fi
+fi
+
+# rbenv should now be available - run it
+if command -v rbenv &>/dev/null; then
+    exec rbenv "$@"
+else
+    echo "Error: rbenv failed to load" >&2
+    exit 1
+fi

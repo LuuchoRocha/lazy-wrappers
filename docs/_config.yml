@@ -1,0 +1,13 @@
+title: lazy-wrappers
+description: Faster shell startup by lazy-loading nvm and rbenv
+theme: cayman
+markdown: kramdown
+
+header_pages:
+  - index.md
+  - why.md
+  - how-it-works.md
+  - install.md
+  - benchmarks.md
+  - faq.md
+  - compatibility.md

@@ -1,0 +1,66 @@
+#!/bin/bash
+# Lazy loader for nvm (Node Version Manager)
+# Auto-clones nvm if not installed, then loads it
+
+# Exit early if already loaded
+if [[ -n "$NVM_ALREADY_LOADED" ]]; then
+    return 0 2>/dev/null || exit 0
+fi
+
+# Set default NVM directory if not set
+[[ -z "$NVM_DIR" ]] && export NVM_DIR="$HOME/.nvm"
+
+# Validate git is available before attempting clone
+if ! command -v git >/dev/null 2>&1; then
+    echo "Error: git is required to install nvm but is not installed." >&2
+    echo "Please install git and try again." >&2
+    return 1 2>/dev/null || exit 1
+fi
+
+# Clone nvm if not installed
+if [[ ! -d "$NVM_DIR" ]]; then
+    echo "Installing nvm to $NVM_DIR..." >&2
+    if ! git clone --quiet https://github.com/nvm-sh/nvm.git "$NVM_DIR"; then
+        echo "Error: Failed to clone nvm from GitHub" >&2
+        return 1 2>/dev/null || exit 1
+    fi
+    
+    # Check out latest stable version (prefer 'main' over 'master' for modern repos)
+    # First, try to get the latest tag
+    latest_tag=$(cd "$NVM_DIR" && git describe --abbrev=0 --tags 2>/dev/null || echo "")
+    
+    if [[ -n "$latest_tag" ]]; then
+        # Tag found, check it out
+        if ! (cd "$NVM_DIR" && git checkout --quiet "$latest_tag"); then
+            echo "Warning: Failed to checkout tag $latest_tag, using default branch" >&2
+        fi
+    else
+        # No tag found, use default branch
+        if ! (cd "$NVM_DIR" && git checkout --quiet main 2>/dev/null || git checkout --quiet master 2>/dev/null); then
+            echo "Warning: Failed to checkout default branch" >&2
+        fi
+    fi
+fi
+
+# Load nvm
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+    # shellcheck source=/dev/null
+    . "$NVM_DIR/nvm.sh"
+else
+    echo "Error: nvm.sh not found at $NVM_DIR/nvm.sh" >&2
+    return 1 2>/dev/null || exit 1
+fi
+
+# Load bash completion if available
+[[ -s "$NVM_DIR/bash_completion" ]] && . "$NVM_DIR/bash_completion"
+
+# Mark as loaded
+export NVM_ALREADY_LOADED=1
+
+# Create flag file for shell hook if the directory is set
+if [[ -n "${__LAZY_WRAPPERS_FLAGS_DIR:-}" ]]; then
+    if ! touch "$__LAZY_WRAPPERS_FLAGS_DIR/nvm_loaded" 2>/dev/null; then
+        # Silently fail - this is not critical, just optimization for shell hook
+        true
+    fi
+fi

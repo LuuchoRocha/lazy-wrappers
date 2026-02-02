@@ -1,0 +1,65 @@
+# =============================================================================
+# Generated wrapper scripts (created by generate_wrappers.sh)
+# =============================================================================
+scripts/bin/node_wrappers/*
+scripts/bin/ruby_wrappers/*
+bin/node_wrappers/*
+bin/ruby_wrappers/*
+node_wrappers/*
+ruby_wrappers/*
+
+# Keep .gitkeep files to preserve directory structure
+!scripts/bin/node_wrappers/.gitkeep
+!scripts/bin/ruby_wrappers/.gitkeep
+!bin/node_wrappers/.gitkeep
+!bin/ruby_wrappers/.gitkeep
+!node_wrappers/.gitkeep
+!ruby_wrappers/.gitkeep
+
+# =============================================================================
+# Jekyll / Documentation site (docs/_site is generated)
+# =============================================================================
+docs/_site/
+docs/.sass-cache/
+docs/.jekyll-cache/
+docs/.jekyll-metadata
+
+# =============================================================================
+# Ruby (for Jekyll docs)
+# =============================================================================
+docs/Gemfile.lock
+.ruby-lsp/
+
+# =============================================================================
+# Backup files created by install/uninstall
+# =============================================================================
+*.backup-*
+*.bak
+
+# =============================================================================
+# Temporary files
+# =============================================================================
+*.tmp
+*.swp
+*~
+
+# =============================================================================
+# macOS
+# =============================================================================
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# =============================================================================
+# Editor backups
+# =============================================================================
+*.orig
+
+# =============================================================================
+# Test artifacts
+# =============================================================================
+test-results/
+*.log
+*.temp
+.*cache
+actionlint
