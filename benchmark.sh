@@ -27,7 +27,7 @@ RBENV_DIR="${RBENV_DIR:-$HOME/.rbenv}"
 
 # Output file
 RESULTS_FILE="benchmark-results.md"
-> "$RESULTS_FILE"
+true > "$RESULTS_FILE"
 
 # Function to print to both terminal and file
 out() {
