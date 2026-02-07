@@ -5,11 +5,14 @@
 set -euo pipefail
 
 # Define temporary directory for cloning the repository
-REPO_DIR="/tmp/lazy-wrappers"
+REPO_DIR="/tmp/lazy-wrappers-$(date +%s)"
 # Delete any existing directory
-rm -rf "$REPO_DIR"
+rm -rf "$REPO_DIR" || true
 # Clone the repository
-git clone https://github.com/LuuchoRocha/lazy-wrappers.git "$REPO_DIR"
+git clone https://github.com/LuuchoRocha/lazy-wrappers.git "$REPO_DIR" 2>/dev/null || {
+    echo "Error: Failed to clone repository. Please check your internet connection and try again."
+    exit 1
+}
 # Make the installer script executable
 chmod +x "$REPO_DIR/install.sh"
 # Run the installer script

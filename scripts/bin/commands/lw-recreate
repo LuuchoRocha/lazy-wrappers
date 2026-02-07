@@ -1,0 +1,119 @@
+#!/bin/bash
+# lw-recreate: Edit wrappers.conf and regenerate wrapper scripts
+# Use this after installation to add, remove, or modify wrapped binaries
+
+set -euo pipefail
+
+# Colors and formatting
+BOLD='\033[1m'
+DIM='\033[2m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+# This script lives at <install_dir>/scripts/bin/commands/
+SCRIPT_SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
+INSTALL_DIR="$(cd "$SCRIPT_SOURCE_DIR/../../.." && pwd)"
+CONF_FILE="$INSTALL_DIR/scripts/wrappers.conf"
+GENERATOR="$INSTALL_DIR/scripts/generate_wrappers.sh"
+NODE_WRAPPERS_DIR="$INSTALL_DIR/scripts/bin/node_wrappers"
+RUBY_WRAPPERS_DIR="$INSTALL_DIR/scripts/bin/ruby_wrappers"
+
+# Validate installation exists
+if [[ ! -f "$CONF_FILE" ]]; then
+    echo -e "${RED}✗ Error:${NC} lazy-wrappers installation not found (expected $CONF_FILE)"
+    echo -e "  Run ${CYAN}install.sh${NC} first."
+    exit 1
+fi
+
+if [[ ! -f "$CONF_FILE" ]]; then
+    echo -e "${RED}✗ Error:${NC} Configuration file not found at $CONF_FILE"
+    exit 1
+fi
+
+if [[ ! -f "$GENERATOR" ]]; then
+    echo -e "${RED}✗ Error:${NC} Wrapper generator not found at $GENERATOR"
+    exit 1
+fi
+
+# Determine editor
+EDITOR="${EDITOR:-${VISUAL:-}}"
+if [[ -z "$EDITOR" ]]; then
+    # Try common editors as fallback
+    for candidate in nano vim vi; do
+        if command -v "$candidate" &>/dev/null; then
+            EDITOR="$candidate"
+            break
+        fi
+    done
+fi
+
+if [[ -z "$EDITOR" ]]; then
+    echo -e "${RED}✗ Error:${NC} No editor found. Set \$EDITOR or \$VISUAL environment variable."
+    exit 1
+fi
+
+# Save current content for comparison
+BEFORE=$(cat "$CONF_FILE")
+
+echo -e "${BOLD}${CYAN}Opening wrappers.conf with ${EDITOR}...${NC}"
+echo -e "${DIM}Add or remove entries in the format: binary_name:loader (nvm or rbenv)${NC}\n"
+
+# Open editor and wait for it to close
+"$EDITOR" "$CONF_FILE"
+
+AFTER=$(cat "$CONF_FILE")
+
+# Check if anything changed
+if [[ "$BEFORE" == "$AFTER" ]]; then
+    echo -e "\n${YELLOW}No changes detected.${NC} Wrappers were not regenerated."
+    exit 0
+fi
+
+# Validate new content has at least one valid entry
+has_valid_entries=false
+while IFS=: read -r binary_name loader || [[ -n "$binary_name" ]]; do
+    [[ -z "$binary_name" || "$binary_name" =~ ^[[:space:]]*# ]] && continue
+    binary_name=$(echo "$binary_name" | xargs)
+    loader=$(echo "$loader" | xargs)
+    if [[ "$loader" != "nvm" && "$loader" != "rbenv" ]]; then
+        echo -e "${RED}✗ Error:${NC} Invalid loader '${loader}' for '${binary_name}' (must be 'nvm' or 'rbenv')"
+        echo -e "  Please fix wrappers.conf and run ${CYAN}lw-recreate${NC} again."
+        exit 1
+    fi
+    has_valid_entries=true
+done < "$CONF_FILE"
+
+if [[ "$has_valid_entries" == "false" ]]; then
+    echo -e "${RED}✗ Error:${NC} No valid entries found in wrappers.conf"
+    echo -e "  Expected format: ${DIM}binary_name:loader${NC} (e.g., node:nvm or ruby:rbenv)"
+    exit 1
+fi
+
+# Clean old generated wrappers (preserve static ones like nvm, rbenv)
+echo -e "\n${BOLD}→ Cleaning old wrappers...${NC}"
+for dir in "$NODE_WRAPPERS_DIR" "$RUBY_WRAPPERS_DIR"; do
+    if [[ -d "$dir" ]]; then
+        for wrapper in "$dir"/*; do
+            [[ ! -f "$wrapper" ]] && continue
+            wrapper_name=$(basename "$wrapper")
+            # Preserve .gitkeep and static wrappers
+            [[ "$wrapper_name" == ".gitkeep" ]] && continue
+            [[ "$wrapper_name" == "nvm" && "$dir" == "$NODE_WRAPPERS_DIR" ]] && continue
+            [[ "$wrapper_name" == "rbenv" && "$dir" == "$RUBY_WRAPPERS_DIR" ]] && continue
+            rm -f "$wrapper"
+        done
+    fi
+done
+
+# Regenerate wrappers
+echo -e "${BOLD}→ Regenerating wrappers...${NC}"
+if "$GENERATOR"; then
+    echo -e "\n${GREEN}${BOLD}✓ Wrappers regenerated successfully!${NC}"
+    echo -e "${DIM}Changes take effect immediately for new commands.${NC}\n"
+else
+    echo -e "\n${RED}✗ Error:${NC} Failed to regenerate wrappers."
+    exit 1
+fi

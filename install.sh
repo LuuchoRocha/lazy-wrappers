@@ -37,18 +37,6 @@ echo -e "${BOLD}${CYAN}╚══════════════════
 echo -e "${BOLD}→ Installing to${NC} ${CYAN}$INSTALL_DIR${NC}"
 mkdir -p "$INSTALL_DIR/scripts/bin/node_wrappers" "$INSTALL_DIR/scripts/bin/ruby_wrappers" "$INSTALL_DIR/scripts/bin/commands"
 
-# Copy only the required files
-echo -e "${DIM}  Copying core files...${NC}"
-FILES_TO_COPY=(install.sh uninstall.sh benchmark.sh)
-for file in "${FILES_TO_COPY[@]}"; do
-    if [[ -f "$SCRIPT_SOURCE_DIR/$file" ]]; then
-        if ! cp -f "$SCRIPT_SOURCE_DIR/$file" "$INSTALL_DIR/"; then
-            echo -e "${RED}✗ Error:${NC} Failed to copy $file to $INSTALL_DIR"
-            exit 1
-        fi
-    fi
-done
-
 # Copy scripts directory (excluding bin subdirectories which will be generated)
 echo -e "${DIM}  Copying scripts...${NC}"
 for file in "$SCRIPT_SOURCE_DIR/scripts"/*; do
@@ -69,16 +57,18 @@ if [[ -f "$SCRIPT_SOURCE_DIR/scripts/bin/ruby_wrappers/rbenv" ]]; then
     cp -f "$SCRIPT_SOURCE_DIR/scripts/bin/ruby_wrappers/rbenv" "$RUBY_WRAPPERS_DIR/"
 fi
 
-# Create lw-* commands in the commands directory
-echo -e "${DIM}  Creating commands...${NC}"
-if [[ -f "$INSTALL_DIR/uninstall.sh" ]]; then
-    cp -f "$INSTALL_DIR/uninstall.sh" "$COMMANDS_DIR/lw-uninstall"
-    chmod +x "$COMMANDS_DIR/lw-uninstall"
-fi
-if [[ -f "$INSTALL_DIR/benchmark.sh" ]]; then
-    cp -f "$INSTALL_DIR/benchmark.sh" "$COMMANDS_DIR/lw-benchmark"
-    chmod +x "$COMMANDS_DIR/lw-benchmark"
-fi
+# Copy lw-* commands to the commands directory
+echo -e "${DIM}  Copying commands...${NC}"
+for cmd_file in "$SCRIPT_SOURCE_DIR/scripts/bin/commands"/lw-*; do
+    if [[ -f "$cmd_file" ]]; then
+        cmd_name=$(basename "$cmd_file")
+        if ! cp -f "$cmd_file" "$COMMANDS_DIR/$cmd_name"; then
+            echo -e "${RED}✗ Error:${NC} Failed to copy $cmd_name to $COMMANDS_DIR"
+            exit 1
+        fi
+        chmod +x "$COMMANDS_DIR/$cmd_name"
+    fi
+done
 
 # Generate all wrapper scripts from wrappers.conf
 echo -e "${DIM}  Generating wrappers...${NC}"
