@@ -65,7 +65,7 @@ Out of the box, the following commands are wrapped:
 #### Customization
 - Single configuration file (`wrappers.conf`) to add or remove wrapped binaries
 - Simple format: `binary_name:loader` (where loader is `nvm` or `rbenv`)
-- Regenerate wrappers anytime with `generate_wrappers.sh`
+- Regenerate wrappers anytime with `generate_wrappers`
 
 #### Developer Tools
 - Comprehensive benchmarking script (`benchmark.sh`) to measure performance on your system

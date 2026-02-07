@@ -1,5 +1,5 @@
 # =============================================================================
-# Generated wrapper scripts (created by generate_wrappers.sh)
+# Generated wrapper scripts (created by generate_wrappers)
 # =============================================================================
 scripts/bin/node_wrappers/*
 scripts/bin/ruby_wrappers/*

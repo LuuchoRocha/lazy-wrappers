@@ -53,7 +53,7 @@ my-gem:rbenv
 After editing, regenerate wrappers:
 
 ```bash
-~/.lazy-wrappers/scripts/generate_wrappers.sh
+~/.lazy-wrappers/scripts/generate_wrappers
 ```
 
 ## After first use: no overhead

@@ -7,7 +7,7 @@ set -euo pipefail
 echo "Testing wrapper regeneration..."
 
 # Regenerate wrappers
-"${HOME}/.lazy-wrappers/scripts/generate_wrappers.sh"
+"${HOME}/.lazy-wrappers/scripts/generate_wrappers"
 
 # Verify they still exist
 if [[ ! -f "${HOME}/.lazy-wrappers/scripts/bin/node_wrappers/node" ]]; then

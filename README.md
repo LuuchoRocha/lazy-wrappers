@@ -64,7 +64,7 @@ my-gem:rbenv     # wraps my-gem to load rbenv first
 
 Then regenerate wrappers:
 ```bash
-~/.lazy-wrappers/scripts/generate_wrappers.sh
+~/.lazy-wrappers/scripts/generate_wrappers
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for more details on adding wrappers.

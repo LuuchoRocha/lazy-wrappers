@@ -4,16 +4,31 @@
 # once the corresponding version manager has been loaded, replacing them
 # with the actual version manager paths
 
+# Resolve paths dynamically from this script's location
+# shell_hook lives at <install_dir>/scripts/shell_hook
+if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+    __LAZY_WRAPPERS_HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+else
+    # zsh: $0 is the sourced file path when sourcing
+    __LAZY_WRAPPERS_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+fi
+__LAZY_WRAPPERS_NODE_DIR="$__LAZY_WRAPPERS_HOOK_DIR/bin/node_wrappers"
+__LAZY_WRAPPERS_RUBY_DIR="$__LAZY_WRAPPERS_HOOK_DIR/bin/ruby_wrappers"
+
 # Use flag files to track which version managers have been loaded
 __LAZY_WRAPPERS_FLAGS_DIR="${XDG_RUNTIME_DIR:-/tmp}/lazy-wrappers-$$"
 
 __lazy_wrappers_cleanup() {
-    # Remove node_wrappers from PATH and add nvm paths if flag exists
+    # Remove node_wrappers from PATH and load nvm into this shell if flag exists
     if [[ -f "$__LAZY_WRAPPERS_FLAGS_DIR/nvm_loaded" && "$PATH" == *"node_wrappers"* ]]; then
-        PATH="${PATH//$HOME\/.lazy-wrappers\/scripts\/bin\/node_wrappers:/}"
-        PATH="${PATH//:$HOME\/.lazy-wrappers\/scripts\/bin\/node_wrappers/}"
+        PATH=":$PATH:"
+        while [[ "$PATH" == *":$__LAZY_WRAPPERS_NODE_DIR:"* ]]; do
+            PATH="${PATH//:$__LAZY_WRAPPERS_NODE_DIR:/:}"
+        done
+        PATH="${PATH#:}"
+        PATH="${PATH%:}"
         # Load nvm into this shell if not already loaded
-        if [[ -z "$NVM_ALREADY_LOADED" ]]; then
+        if [[ -z "${NVM_ALREADY_LOADED:-}" ]]; then
             export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
             [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
             export NVM_ALREADY_LOADED=1
@@ -21,12 +36,16 @@ __lazy_wrappers_cleanup() {
         export PATH
     fi
     
-    # Remove ruby_wrappers from PATH and add rbenv paths if flag exists
+    # Remove ruby_wrappers from PATH and load rbenv into this shell if flag exists
     if [[ -f "$__LAZY_WRAPPERS_FLAGS_DIR/rbenv_loaded" && "$PATH" == *"ruby_wrappers"* ]]; then
-        PATH="${PATH//$HOME\/.lazy-wrappers\/scripts\/bin\/ruby_wrappers:/}"
-        PATH="${PATH//:$HOME\/.lazy-wrappers\/scripts\/bin\/ruby_wrappers/}"
+        PATH=":$PATH:"
+        while [[ "$PATH" == *":$__LAZY_WRAPPERS_RUBY_DIR:"* ]]; do
+            PATH="${PATH//:$__LAZY_WRAPPERS_RUBY_DIR:/:}"
+        done
+        PATH="${PATH#:}"
+        PATH="${PATH%:}"
         # Load rbenv into this shell if not already loaded
-        if [[ -z "$RBENV_ALREADY_LOADED" ]]; then
+        if [[ -z "${RBENV_ALREADY_LOADED:-}" ]]; then
             export RBENV_DIR="${RBENV_DIR:-$HOME/.rbenv}"
             if [[ -x "$RBENV_DIR/bin/rbenv" ]]; then
                 eval "$("$RBENV_DIR/bin/rbenv" init - "${ZSH_VERSION:+zsh}" "${BASH_VERSION:+bash}")"

@@ -203,7 +203,7 @@ fi
 echo -ne "  ${YELLOW}[4/4]${NC} lazy-wrappers...                        "
 cat > "$TEMP_RC" << EOF
 export PATH="$NODE_WRAPPERS:$RUBY_WRAPPERS:\$PATH"
-. "$LAZY_WRAPPERS_DIR/scripts/shell_hook.sh"
+. "$LAZY_WRAPPERS_DIR/scripts/shell_hook"
 EOF
 read -r lazy_avg lazy_min lazy_max <<< "$(measure_startup "$TEMP_RC")"
 echo -e "${GREEN}${lazy_avg}ms${NC} (+$((lazy_avg - baseline_avg))ms)"

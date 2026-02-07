@@ -72,13 +72,13 @@ done
 
 # Generate all wrapper scripts from wrappers.conf
 echo -e "${DIM}  Generating wrappers...${NC}"
-if [[ ! -f "$INSTALL_DIR/scripts/generate_wrappers.sh" ]]; then
+if [[ ! -f "$INSTALL_DIR/scripts/generate_wrappers" ]]; then
     echo -e "${RED}✗ Error:${NC} Wrapper generator script not found"
     exit 1
 fi
 
-chmod +x "$INSTALL_DIR/scripts/generate_wrappers.sh"
-if ! "$INSTALL_DIR/scripts/generate_wrappers.sh" >/dev/null; then
+chmod +x "$INSTALL_DIR/scripts/generate_wrappers"
+if ! "$INSTALL_DIR/scripts/generate_wrappers" >/dev/null; then
     echo -e "${RED}✗ Error:${NC} Failed to generate wrapper scripts"
     exit 1
 fi
@@ -98,7 +98,7 @@ if [[ -d "$RUBY_WRAPPERS_DIR" ]] && [[ -n "$(ls -A "$RUBY_WRAPPERS_DIR" 2>/dev/n
     fi
 fi
 
-for script in nvmload rbenvload shell_hook.sh; do
+for script in nvmload rbenvload shell_hook; do
     if [[ -f "$INSTALL_DIR/scripts/$script" ]]; then
         chmod +x "$INSTALL_DIR/scripts/$script"
     fi
@@ -108,7 +108,7 @@ done
 # Use a guard to prevent duplicate PATH entries when shell config is sourced multiple times
 PATH_COMMENT="# lazy-wrappers: Add wrapper scripts to PATH and load shell hook"
 PATH_EXPORT="[[ \":\$PATH:\" != *\":$NODE_WRAPPERS_DIR:\"* ]] && export PATH=\"$NODE_WRAPPERS_DIR:$RUBY_WRAPPERS_DIR:$COMMANDS_DIR:\$PATH\""
-HOOK_SOURCE=". \"$INSTALL_DIR/scripts/shell_hook.sh\""
+HOOK_SOURCE=". \"$INSTALL_DIR/scripts/shell_hook\""
 
 echo -e "\n${BOLD}→ Configuring shell${NC}"
 

@@ -17,7 +17,7 @@ NC='\033[0m'
 SCRIPT_SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
 INSTALL_DIR="$(cd "$SCRIPT_SOURCE_DIR/../../.." && pwd)"
 CONF_FILE="$INSTALL_DIR/scripts/wrappers.conf"
-GENERATOR="$INSTALL_DIR/scripts/generate_wrappers.sh"
+GENERATOR="$INSTALL_DIR/scripts/generate_wrappers"
 NODE_WRAPPERS_DIR="$INSTALL_DIR/scripts/bin/node_wrappers"
 RUBY_WRAPPERS_DIR="$INSTALL_DIR/scripts/bin/ruby_wrappers"
 
