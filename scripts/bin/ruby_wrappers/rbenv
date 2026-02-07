@@ -9,10 +9,12 @@ if [[ -n "${__LAZY_WRAPPERS_RBENV_LOADING:-}" ]]; then
 fi
 export __LAZY_WRAPPERS_RBENV_LOADING=1
 
-# Remove wrapper directory from PATH FIRST to prevent recursion
+# Remove ALL occurrences of wrapper directory from PATH to prevent recursion
 WRAPPER_DIR="$(cd "$(dirname "$0")" && pwd)"
 PATH=":$PATH:"
-PATH="${PATH//:$WRAPPER_DIR:/:}"
+while [[ "$PATH" == *":$WRAPPER_DIR:"* ]]; do
+    PATH="${PATH//:$WRAPPER_DIR:/:}"
+done
 PATH="${PATH#:}"
 PATH="${PATH%:}"
 export PATH
@@ -23,6 +25,11 @@ if ! command -v rbenv &>/dev/null; then
     if [[ -f "$SCRIPT_DIR/rbenvload" ]]; then
         . "$SCRIPT_DIR/rbenvload"
     fi
+fi
+
+# Create flag file so shell_hook removes wrapper dir from parent shell PATH
+if [[ -n "${__LAZY_WRAPPERS_FLAGS_DIR:-}" ]]; then
+    touch "$__LAZY_WRAPPERS_FLAGS_DIR/rbenv_loaded" 2>/dev/null || true
 fi
 
 # rbenv should now be available - run it
