@@ -5,6 +5,26 @@ All notable changes to lazy-wrappers will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0] - 2026-02-11
+
+### ✨ Added
+
+- **`lw-recreate` command** — New command to regenerate wrappers after editing `wrappers.conf`, without re-running the full installer
+- **`lw-benchmark` command** — Bundled benchmark script as a subcommand accessible from PATH
+- **Developer documentation** — Comprehensive dev docs covering architecture, wrapper generation, loaders, shell hook, static wrappers, lifecycle, and gotchas
+
+### 🚀 Improved
+
+- **Performance & simplified wrapper generation** — Streamlined `generate_wrappers` and `shell_hook` scripts; removed `.sh` extensions for cleaner invocation
+- **Prevented redundant re-loading** — Static wrappers for `nvm` and `rbenv` now skip loading if already initialized, avoiding unnecessary work
+- **Completions support** — Fixed rbenv and nvm completions so tab-completion works correctly after lazy-loading
+
+### 🔧 Changed
+
+- Removed standalone `uninstall.sh`, `benchmark.sh`, `shellcheck.sh`, `BENCHMARK.md`, `CONTRIBUTING.md`, and `LICENSE` from the repo root (functionality moved to subcommands or docs site)
+- Selective file copying during install now targets only essential files
+- Added `irb` and `erb` to Ruby wrappers in `wrappers.conf`
+
 ## [0.0.4] - 2026-02-02
 
 ### ✨ Improved
@@ -94,5 +114,6 @@ After the first command in a session, wrappers are removed from PATH — all sub
 
 ---
 
+[0.1.0]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/0.1.0
 [0.0.4]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/v0.0.4
 [0.0.1]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/v0.0.1
