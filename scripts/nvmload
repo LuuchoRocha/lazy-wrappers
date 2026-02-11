@@ -51,8 +51,19 @@ else
     return 1 2>/dev/null || exit 1
 fi
 
-# Load bash completion if available
-[[ -s "$NVM_DIR/bash_completion" ]] && . "$NVM_DIR/bash_completion"
+# Load nvm completion if available
+if [[ -s "$NVM_DIR/bash_completion" ]]; then
+    # zsh needs bashcompinit for bash-style completion scripts.
+    if [[ -n "${ZSH_VERSION:-}" ]] && ! type complete >/dev/null 2>&1; then
+        autoload -Uz bashcompinit 2>/dev/null || true
+        bashcompinit 2>/dev/null || true
+    fi
+
+    if type complete >/dev/null 2>&1; then
+        # shellcheck source=/dev/null
+        . "$NVM_DIR/bash_completion"
+    fi
+fi
 
 # Mark as loaded
 export NVM_ALREADY_LOADED=1

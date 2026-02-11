@@ -18,6 +18,68 @@ __LAZY_WRAPPERS_RUBY_DIR="$__LAZY_WRAPPERS_HOOK_DIR/bin/ruby_wrappers"
 # Use flag files to track which version managers have been loaded
 __LAZY_WRAPPERS_FLAGS_DIR="${XDG_RUNTIME_DIR:-/tmp}/lazy-wrappers-$$"
 
+__lazy_wrappers_load_nvm_into_parent_shell() {
+    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+
+    if [[ ! -s "$NVM_DIR/nvm.sh" ]]; then
+        return 0
+    fi
+
+    # shellcheck source=/dev/null
+    . "$NVM_DIR/nvm.sh"
+
+    if [[ -s "$NVM_DIR/bash_completion" ]]; then
+        # zsh needs bashcompinit for bash-style completion scripts.
+        if [[ -n "${ZSH_VERSION:-}" ]] && ! type complete >/dev/null 2>&1; then
+            autoload -Uz bashcompinit 2>/dev/null || true
+            bashcompinit 2>/dev/null || true
+        fi
+
+        if type complete >/dev/null 2>&1; then
+            # shellcheck source=/dev/null
+            . "$NVM_DIR/bash_completion"
+        fi
+    fi
+
+    export NVM_ALREADY_LOADED=1
+}
+
+__lazy_wrappers_load_rbenv_into_parent_shell() {
+    export RBENV_DIR="${RBENV_DIR:-$HOME/.rbenv}"
+    if [[ ! -x "$RBENV_DIR/bin/rbenv" ]]; then
+        return 0
+    fi
+
+    if [[ -n "${ZSH_VERSION:-}" ]]; then
+        eval "$("$RBENV_DIR/bin/rbenv" init - zsh)"
+
+        # rbenv's zsh completion needs the completions directory on fpath.
+        if [[ -d "$RBENV_DIR/completions" ]]; then
+            __lazy_wrappers_has_rbenv_completion_path=0
+            for __path in "${fpath[@]}"; do
+                if [[ "$__path" == "$RBENV_DIR/completions" ]]; then
+                    __lazy_wrappers_has_rbenv_completion_path=1
+                    break
+                fi
+            done
+
+            if [[ "$__lazy_wrappers_has_rbenv_completion_path" -eq 0 ]]; then
+                fpath=("$RBENV_DIR/completions" "${fpath[@]}")
+            fi
+
+            autoload -Uz _rbenv 2>/dev/null || true
+            type compdef >/dev/null 2>&1 && compdef _rbenv rbenv 2>/dev/null || true
+            unset __lazy_wrappers_has_rbenv_completion_path __path
+        fi
+    elif [[ -n "${BASH_VERSION:-}" ]]; then
+        eval "$("$RBENV_DIR/bin/rbenv" init - bash)"
+    else
+        eval "$("$RBENV_DIR/bin/rbenv" init -)"
+    fi
+
+    export RBENV_ALREADY_LOADED=1
+}
+
 __lazy_wrappers_cleanup() {
     # Remove node_wrappers from PATH and load nvm into this shell if flag exists
     if [[ -f "$__LAZY_WRAPPERS_FLAGS_DIR/nvm_loaded" && "$PATH" == *"node_wrappers"* ]]; then
@@ -29,9 +91,7 @@ __lazy_wrappers_cleanup() {
         PATH="${PATH%:}"
         # Load nvm into this shell if not already loaded
         if [[ -z "${NVM_ALREADY_LOADED:-}" ]]; then
-            export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-            [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
-            export NVM_ALREADY_LOADED=1
+            __lazy_wrappers_load_nvm_into_parent_shell
         fi
         export PATH
     fi
@@ -46,11 +106,7 @@ __lazy_wrappers_cleanup() {
         PATH="${PATH%:}"
         # Load rbenv into this shell if not already loaded
         if [[ -z "${RBENV_ALREADY_LOADED:-}" ]]; then
-            export RBENV_DIR="${RBENV_DIR:-$HOME/.rbenv}"
-            if [[ -x "$RBENV_DIR/bin/rbenv" ]]; then
-                eval "$("$RBENV_DIR/bin/rbenv" init - "${ZSH_VERSION:+zsh}" "${BASH_VERSION:+bash}")"
-                export RBENV_ALREADY_LOADED=1
-            fi
+            __lazy_wrappers_load_rbenv_into_parent_shell
         fi
         export PATH
     fi

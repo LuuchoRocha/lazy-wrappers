@@ -45,6 +45,25 @@ if [[ -x "$RBENV_DIR/bin/rbenv" ]]; then
     # Detect shell and initialize appropriately
     if [[ -n "${ZSH_VERSION:-}" ]]; then
         eval "$("$RBENV_DIR/bin/rbenv" init - zsh)"
+
+        # rbenv's zsh completion needs the completions directory on fpath.
+        if [[ -d "$RBENV_DIR/completions" ]]; then
+            __lazy_wrappers_has_rbenv_completion_path=0
+            for __path in "${fpath[@]}"; do
+                if [[ "$__path" == "$RBENV_DIR/completions" ]]; then
+                    __lazy_wrappers_has_rbenv_completion_path=1
+                    break
+                fi
+            done
+
+            if [[ "$__lazy_wrappers_has_rbenv_completion_path" -eq 0 ]]; then
+                fpath=("$RBENV_DIR/completions" "${fpath[@]}")
+            fi
+
+            autoload -Uz _rbenv 2>/dev/null || true
+            type compdef >/dev/null 2>&1 && compdef _rbenv rbenv 2>/dev/null || true
+            unset __lazy_wrappers_has_rbenv_completion_path __path
+        fi
     elif [[ -n "${BASH_VERSION:-}" ]]; then
         eval "$("$RBENV_DIR/bin/rbenv" init - bash)"
     else
