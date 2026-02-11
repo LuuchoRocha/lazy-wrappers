@@ -12,6 +12,7 @@ header_pages:
   - benchmarks.md
   - faq.md
   - compatibility.md
+  - dev/index.md
 
 # Exclude files from build
 exclude:

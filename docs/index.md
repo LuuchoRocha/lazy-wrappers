@@ -59,3 +59,4 @@ If your workflow is “one terminal open all day and constant Node/Ruby usage”
 - [Benchmarks](benchmarks) — real measurements
 - [FAQ](faq) — common questions
 - [Compatibility](compatibility) — shells and frameworks
+- [Dev Docs](dev/) — internals for contributors
