@@ -163,7 +163,7 @@ TEMP_RC="$TEMP_DIR/.bashrc"
 [[ "$SHELL_NAME" == "zsh" ]] && TEMP_RC="$TEMP_DIR/.zshrc"
 
 # Baseline
-echo -ne "  ${YELLOW}[1/4]${NC} Baseline (no version managers)...        "
+echo -ne "  ${YELLOW}[1/5]${NC} Baseline (no version managers)...        "
 cat > "$TEMP_RC" << 'EOF'
 export PATH="/usr/local/bin:/usr/bin:/bin"
 EOF
@@ -172,8 +172,10 @@ echo -e "${GREEN}${baseline_avg}ms${NC}"
 
 # Traditional nvm
 nvm_avg=0 nvm_savings=0
+HAS_NVM=false
 if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-    echo -ne "  ${YELLOW}[2/4]${NC} Traditional nvm loading...              "
+    HAS_NVM=true
+    echo -ne "  ${YELLOW}[2/5]${NC} Traditional nvm (alone)...              "
     cat > "$TEMP_RC" << EOF
 export NVM_DIR="$NVM_DIR"
 [ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"
@@ -182,13 +184,15 @@ EOF
     read -r nvm_avg nvm_min nvm_max <<< "$(measure_startup "$TEMP_RC")"
     echo -e "${RED}${nvm_avg}ms${NC} (+$((nvm_avg - baseline_avg))ms)"
 else
-    echo -e "  ${YELLOW}[2/4]${NC} Traditional nvm loading...              ${YELLOW}skipped${NC} (not installed)"
+    echo -e "  ${YELLOW}[2/5]${NC} Traditional nvm (alone)...              ${YELLOW}skipped${NC} (not installed)"
 fi
 
 # Traditional rbenv
 rbenv_avg=0 rbenv_savings=0
+HAS_RBENV=false
 if [[ -x "$RBENV_DIR/bin/rbenv" ]]; then
-    echo -ne "  ${YELLOW}[3/4]${NC} Traditional rbenv loading...            "
+    HAS_RBENV=true
+    echo -ne "  ${YELLOW}[3/5]${NC} Traditional rbenv (alone)...            "
     cat > "$TEMP_RC" << EOF
 export PATH="$RBENV_DIR/bin:\$PATH"
 eval "\$($RBENV_DIR/bin/rbenv init - $SHELL_NAME)"
@@ -196,11 +200,38 @@ EOF
     read -r rbenv_avg rbenv_min rbenv_max <<< "$(measure_startup "$TEMP_RC")"
     echo -e "${RED}${rbenv_avg}ms${NC} (+$((rbenv_avg - baseline_avg))ms)"
 else
-    echo -e "  ${YELLOW}[3/4]${NC} Traditional rbenv loading...            ${YELLOW}skipped${NC} (not installed)"
+    echo -e "  ${YELLOW}[3/5]${NC} Traditional rbenv (alone)...            ${YELLOW}skipped${NC} (not installed)"
+fi
+
+# Traditional nvm + rbenv combined (the real-world scenario)
+combined_avg=0
+if [[ "$HAS_NVM" == true && "$HAS_RBENV" == true ]]; then
+    echo -ne "  ${YELLOW}[4/5]${NC} Traditional nvm + rbenv (combined)...   "
+    cat > "$TEMP_RC" << EOF
+export NVM_DIR="$NVM_DIR"
+[ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"
+[ -s "\$NVM_DIR/bash_completion" ] && . "\$NVM_DIR/bash_completion"
+export PATH="$RBENV_DIR/bin:\$PATH"
+eval "\$($RBENV_DIR/bin/rbenv init - $SHELL_NAME)"
+EOF
+    read -r combined_avg combined_min combined_max <<< "$(measure_startup "$TEMP_RC")"
+    echo -e "${RED}${combined_avg}ms${NC} (+$((combined_avg - baseline_avg))ms)"
+elif [[ "$HAS_NVM" == true ]]; then
+    combined_avg=$nvm_avg
+    combined_min=$nvm_min
+    combined_max=$nvm_max
+    echo -e "  ${YELLOW}[4/5]${NC} Traditional combined...                  ${YELLOW}skipped${NC} (only nvm installed)"
+elif [[ "$HAS_RBENV" == true ]]; then
+    combined_avg=$rbenv_avg
+    combined_min=$rbenv_min
+    combined_max=$rbenv_max
+    echo -e "  ${YELLOW}[4/5]${NC} Traditional combined...                  ${YELLOW}skipped${NC} (only rbenv installed)"
+else
+    echo -e "  ${YELLOW}[4/5]${NC} Traditional combined...                  ${YELLOW}skipped${NC} (neither installed)"
 fi
 
 # lazy-wrappers
-echo -ne "  ${YELLOW}[4/4]${NC} lazy-wrappers...                        "
+echo -ne "  ${YELLOW}[5/5]${NC} lazy-wrappers...                        "
 cat > "$TEMP_RC" << EOF
 export PATH="$NODE_WRAPPERS:$RUBY_WRAPPERS:\$PATH"
 . "$LAZY_WRAPPERS_DIR/scripts/shell_hook"
@@ -209,35 +240,43 @@ read -r lazy_avg lazy_min lazy_max <<< "$(measure_startup "$TEMP_RC")"
 echo -e "${GREEN}${lazy_avg}ms${NC} (+$((lazy_avg - baseline_avg))ms)"
 
 echo ""
-printf "  ${BOLD}%-32s %8s %8s %8s${NC}\n" "Configuration" "Avg" "Min" "Max"
-printf "  %-32s %8s %8s %8s\n" "────────────────────────────────" "────────" "────────" "────────"
-printf "  %-32s %6dms %6dms %6dms\n" "Baseline (no managers)" "$baseline_avg" "$baseline_min" "$baseline_max"
-[[ $nvm_avg -gt 0 ]] && printf "  %-32s %6dms %6dms %6dms\n" "Traditional nvm" "$nvm_avg" "$nvm_min" "$nvm_max"
-[[ $rbenv_avg -gt 0 ]] && printf "  %-32s %6dms %6dms %6dms\n" "Traditional rbenv" "$rbenv_avg" "$rbenv_min" "$rbenv_max"
-printf "  %-32s %6dms %6dms %6dms\n" "lazy-wrappers" "$lazy_avg" "$lazy_min" "$lazy_max"
+printf "  ${BOLD}%-36s %8s %8s %8s${NC}\n" "Configuration" "Avg" "Min" "Max"
+printf "  %-36s %8s %8s %8s\n" "────────────────────────────────────" "────────" "────────" "────────"
+printf "  %-36s %6dms %6dms %6dms\n" "Baseline (no managers)" "$baseline_avg" "$baseline_min" "$baseline_max"
+[[ $nvm_avg -gt 0 ]] && printf "  %-36s %6dms %6dms %6dms\n" "Traditional nvm (alone)" "$nvm_avg" "$nvm_min" "$nvm_max"
+[[ $rbenv_avg -gt 0 ]] && printf "  %-36s %6dms %6dms %6dms\n" "Traditional rbenv (alone)" "$rbenv_avg" "$rbenv_min" "$rbenv_max"
+[[ $combined_avg -gt 0 ]] && printf "  ${BOLD}%-36s %6dms %6dms %6dms${NC}\n" "Traditional nvm + rbenv (combined)" "$combined_avg" "$combined_min" "$combined_max"
+printf "  ${BOLD}%-36s %6dms %6dms %6dms${NC}\n" "lazy-wrappers" "$lazy_avg" "$lazy_min" "$lazy_max"
 
 # Write markdown table
 md "| Configuration | Avg | Min | Max |"
 md "|:--------------|----:|----:|----:|"
 md "| ⚪ Baseline (no managers) | ${baseline_avg}ms | ${baseline_min}ms | ${baseline_max}ms |"
-[[ $nvm_avg -gt 0 ]] && md "| 🔴 Traditional nvm | ${nvm_avg}ms | ${nvm_min}ms | ${nvm_max}ms |"
-[[ $rbenv_avg -gt 0 ]] && md "| 🟠 Traditional rbenv | ${rbenv_avg}ms | ${rbenv_min}ms | ${rbenv_max}ms |"
+[[ $nvm_avg -gt 0 ]] && md "| 🟠 Traditional nvm (alone) | ${nvm_avg}ms | ${nvm_min}ms | ${nvm_max}ms |"
+[[ $rbenv_avg -gt 0 ]] && md "| 🟠 Traditional rbenv (alone) | ${rbenv_avg}ms | ${rbenv_min}ms | ${rbenv_max}ms |"
+[[ $combined_avg -gt 0 ]] && md "| 🔴 **Traditional nvm + rbenv** | **${combined_avg}ms** | ${combined_min}ms | ${combined_max}ms |"
 md "| 🟢 **lazy-wrappers** | **${lazy_avg}ms** | ${lazy_min}ms | ${lazy_max}ms |"
 md ""
 
-# Calculate savings
+# Calculate savings — primary comparison is combined vs lazy-wrappers
 startup_savings=0
-if [[ $nvm_avg -gt 0 ]]; then
+if [[ $combined_avg -gt 0 ]]; then
+    combined_savings=$((combined_avg - lazy_avg))
+    startup_savings=$combined_savings
+    combined_pct=$(( (combined_savings * 100) / combined_avg ))
+    echo ""
+    echo -e "  ${GREEN}✓${NC} vs nvm + rbenv (combined): ${GREEN}-${combined_savings}ms${NC} (${GREEN}${combined_pct}% faster${NC})"
+    md "🟢 **vs nvm + rbenv (combined):** -${combined_savings}ms (${combined_pct}% faster)"
+elif [[ $nvm_avg -gt 0 ]]; then
     nvm_savings=$((nvm_avg - lazy_avg))
     startup_savings=$nvm_savings
     nvm_pct=$(( (nvm_savings * 100) / nvm_avg ))
     echo ""
     echo -e "  ${GREEN}✓${NC} vs nvm:   ${GREEN}-${nvm_savings}ms${NC} (${GREEN}${nvm_pct}% faster${NC})"
     md "🟢 **vs nvm:** -${nvm_savings}ms (${nvm_pct}% faster)"
-fi
-if [[ $rbenv_avg -gt 0 ]]; then
+elif [[ $rbenv_avg -gt 0 ]]; then
     rbenv_savings=$((rbenv_avg - lazy_avg))
-    [[ $startup_savings -eq 0 ]] && startup_savings=$rbenv_savings
+    startup_savings=$rbenv_savings
     rbenv_pct=$(( (rbenv_savings * 100) / rbenv_avg ))
     echo -e "  ${GREEN}✓${NC} vs rbenv: ${GREEN}-${rbenv_savings}ms${NC} (${GREEN}${rbenv_pct}% faster${NC})"
     md "🟢 **vs rbenv:** -${rbenv_savings}ms (${rbenv_pct}% faster)"
