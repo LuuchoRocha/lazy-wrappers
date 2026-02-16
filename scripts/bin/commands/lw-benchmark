@@ -47,7 +47,7 @@ md() {
 
 # Check prerequisites
 if [[ ! -d "$LAZY_WRAPPERS_DIR/scripts" ]]; then
-    echo -e "${RED}Error: lazy-wrappers not installed. Run ./install.sh first.${NC}"
+    echo -e "${RED}Error: lazy-wrappers not installed. Run ./install first.${NC}"
     exit 1
 fi
 

@@ -17,7 +17,7 @@ Traditional shell configs load version managers eagerly on every terminal sessio
 ## Quick Start
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/LuuchoRocha/lazy-wrappers/main/simple_install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/LuuchoRocha/lazy-wrappers/main/install.sh | bash
 ```
 
 Or install manually:

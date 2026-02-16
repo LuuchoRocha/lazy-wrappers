@@ -24,7 +24,7 @@ RUBY_WRAPPERS_DIR="$INSTALL_DIR/scripts/bin/ruby_wrappers"
 # Validate installation exists
 if [[ ! -f "$CONF_FILE" ]]; then
     echo -e "${RED}✗ Error:${NC} lazy-wrappers installation not found (expected $CONF_FILE)"
-    echo -e "  Run ${CYAN}install.sh${NC} first."
+    echo -e "  Run ${CYAN}install${NC} first."
     exit 1
 fi
 
