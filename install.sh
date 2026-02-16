@@ -58,7 +58,7 @@ install_remote() {
 # Set up trap to clean up temporary files if the script is interrupted
 trap cleanup TERM KILL INT ERR
 
-case "$1" in
+case "${1:-}" in
 --version | -v)
   print_version
   exit 0
