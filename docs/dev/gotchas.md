@@ -95,7 +95,7 @@ The config file covers fish detection, but the wrappers and shell hook are bash 
 
 ```bash
 # Install from your working copy
-./install.sh
+./install.sh --local
 
 # Source your shell config to pick up changes
 source ~/.bashrc    # or source ~/.zshrc

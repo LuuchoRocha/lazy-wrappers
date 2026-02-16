@@ -8,7 +8,7 @@ title: Install
 ## Quick install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/LuuchoRocha/lazy-wrappers/main/simple_install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/LuuchoRocha/lazy-wrappers/main/install.sh | bash
 ```
 
 Manual:
@@ -16,7 +16,7 @@ Manual:
 ```bash
 git clone https://github.com/LuuchoRocha/lazy-wrappers.git
 cd lazy-wrappers
-./install.sh
+./install.sh --local
 ```
 
 ## What happens
@@ -45,13 +45,13 @@ Example:
 ```bash
 export NVM_DIR="/custom/nvm/path"
 export RBENV_DIR="/custom/rbenv/path"
-./install.sh
+./install.sh --local
 ```
 
 ## Uninstall
 
 ```bash
-./uninstall.sh
+lw-uninstall
 ```
 
 Uninstall removes lazy-wrappers configuration from shell RC files and can optionally delete the installation directory. Backups are created before modifying files.

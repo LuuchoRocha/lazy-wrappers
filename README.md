@@ -25,7 +25,7 @@ Or install manually:
 ```bash
 git clone https://github.com/LuuchoRocha/lazy-wrappers.git
 cd lazy-wrappers
-./install.sh
+./install.sh --local
 ```
 
 ## Performance
@@ -46,7 +46,7 @@ cd lazy-wrappers
 - Running quick commands that don't require node/ruby (shell starts fast, no unnecessary loading)
 - Opening multiple terminals simultaneously (each one starts instantly)
 
-Run `./benchmark.sh` on your system to measure the exact improvement.
+Run `lw-benchmark` on your system to measure the exact improvement.
 
 ## What gets wrapped?
 
@@ -79,7 +79,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for more details on adding wrappers.
 
 ## Benchmarks
 
-Run `./benchmark.sh` to measure the impact on your system. The benchmark compares shell startup time and first-command overhead across different configurations.
+Run `lw-benchmark` to measure the impact on your system. The benchmark compares shell startup time and first-command overhead across different configurations.
 
 ### Example Results
 
@@ -145,7 +145,7 @@ Since wrappers are removed from PATH after the first command, there's no ongoing
 ## Uninstall
 
 ```bash
-./uninstall.sh
+lw-uninstall
 ```
 
 This will:
@@ -209,14 +209,14 @@ sudo dnf install git
 **Solution**: This should not happen with the current implementation, but if it does:
 1. Check that PATH modification in wrappers is working: `echo $PATH`
 2. Verify version manager is properly installed
-3. Try reinstalling: `./uninstall.sh && ./install.sh`
+3. Try reinstalling: `lw-uninstall && ./install.sh --local`
 
 ### Performance not improving
 
 **Symptom**: Shell startup is still slow.
 
 **Solution**:
-1. Run benchmarks to confirm: `./benchmark.sh`
+1. Run benchmarks to confirm: `lw-benchmark`
 2. Check for other slow RC file operations: `time source ~/.bashrc`
 3. Verify nvm/rbenv aren't being loaded elsewhere in your RC files
 4. Profile your shell startup to find other bottlenecks
@@ -234,12 +234,12 @@ sudo dnf install git
 - `NVM_DIR`: Location of nvm installation (default: `~/.nvm`)
 - `RBENV_DIR`: Location of rbenv installation (default: `~/.rbenv`)
 
-Set these before running `install.sh` if you use non-standard locations:
+Set these before running `install.sh --local` if you use non-standard locations:
 
 ```bash
 export NVM_DIR="/custom/nvm/path"
 export RBENV_DIR="/custom/rbenv/path"
-./install.sh
+./install.sh --local
 ```
 
 ### Customizing Installation Location

@@ -5,6 +5,21 @@ All notable changes to lazy-wrappers will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-02-15
+
+### 🚀 Improved
+
+- **Refactored installer architecture** — Moved core install logic from `install.sh` to `scripts/install`; `install.sh` is now a lightweight entry point that supports `--local`, `--version`, and `--help` flags, and can install remotely by cloning the repo
+- **Enhanced benchmark** — `lw-benchmark` now includes a combined nvm + rbenv benchmark step (5 steps instead of 4), giving a more realistic comparison against typical setups with both managers loaded
+- **Added VERSION file** — Tracks the current release version, used by `install.sh --version`
+
+### 🔧 Changed
+
+- Removed `simple_install.sh` (replaced by `install.sh` remote install mode)
+- Removed `benchmark-results.md` (benchmarks are now in the docs site)
+- Removed CI workflow (`ci.yml`)
+- Updated documentation references from `install.sh` → `install.sh --local` for manual installs, `benchmark.sh` → `lw-benchmark`, `uninstall.sh` → `lw-uninstall`
+
 ## [0.1.0] - 2026-02-11
 
 ### ✨ Added
@@ -78,9 +93,9 @@ Out of the box, the following commands are wrapped:
 - **dash** — Support via `.profile`
 
 #### Installation & Uninstallation
-- One-line installer: `curl -fsSL https://raw.githubusercontent.com/LuuchoRocha/lazy-wrappers/main/simple_install.sh | bash`
-- Manual installation via `install.sh`
-- Clean uninstallation via `uninstall.sh` with automatic backup of modified files
+- One-line installer: `curl -fsSL https://raw.githubusercontent.com/LuuchoRocha/lazy-wrappers/main/install.sh | bash`
+- Manual installation via `./install.sh --local`
+- Clean uninstallation via `lw-uninstall` with automatic backup of modified files
 
 #### Customization
 - Single configuration file (`wrappers.conf`) to add or remove wrapped binaries
@@ -114,6 +129,7 @@ After the first command in a session, wrappers are removed from PATH — all sub
 
 ---
 
+[0.1.1]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/0.1.1
 [0.1.0]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/0.1.0
 [0.0.4]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/v0.0.4
 [0.0.1]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/v0.0.1

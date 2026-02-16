@@ -1,7 +1,7 @@
 #!/bin/bash
 # Configuration for lazy-wrappers
 # Detects shell type and sets appropriate RC files
-# This file is sourced by install and uninstall.sh
+# This file is sourced by install and lw-uninstall
 
 set -euo pipefail
 

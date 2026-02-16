@@ -21,7 +21,7 @@ lazy-wrappers defers version-manager initialization until the moment you actuall
 ## Quick start
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/LuuchoRocha/lazy-wrappers/main/simple_install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/LuuchoRocha/lazy-wrappers/main/install.sh | bash
 ```
 
 Manual install:
@@ -29,7 +29,7 @@ Manual install:
 ```bash
 git clone https://github.com/LuuchoRocha/lazy-wrappers.git
 cd lazy-wrappers
-./install.sh
+./install.sh --local
 ```
 
 ## What you get

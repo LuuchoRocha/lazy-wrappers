@@ -7,7 +7,7 @@ title: Lifecycle
 
 ## 1. Installation
 
-`install.sh` performs these steps in order:
+`install.sh --local` (or `scripts/install` directly) performs these steps in order:
 
 1. **Source configuration** — loads `scripts/config` which detects the user's shell and sets path variables (`INSTALL_DIR`, `RC_FILES[]`, wrapper directory paths).
 
@@ -95,7 +95,7 @@ After the hook has run:
 ## Visual summary
 
 ```
-install.sh
+install.sh --local → scripts/install
     │
     ▼
 Shell starts (3–5 ms)

@@ -15,7 +15,8 @@ You can run the benchmark script on your own system:
 ```bash
 git clone https://github.com/LuuchoRocha/lazy-wrappers.git
 cd lazy-wrappers
-./benchmark.sh
+./install.sh --local
+lw-benchmark
 ```
 
 ## Test hardware (sample run)

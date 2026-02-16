@@ -33,4 +33,4 @@ You won't see the benefit. Remove or comment out the traditional initialization 
 
 ## Is curl | bash required?
 
-No. Clone the repository and run `./install.sh` instead.
+No. Clone the repository and run `./install.sh --local` instead.

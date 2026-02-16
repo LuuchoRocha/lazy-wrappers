@@ -41,7 +41,7 @@ lazy-wrappers eliminates this by:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                        install.sh                                   │
+│                        install.sh → scripts/install                         │
 │  Entry point: copies to ~/.lazy-wrappers, generates wrappers,       │
 │  modifies shell RC files                                            │
 └─────────────────────┬───────────────────────────────────────────────┘
@@ -145,7 +145,8 @@ User types: node --version
 
 | File | Role | Modified at install? | Modified at runtime? |
 |------|------|---------------------|---------------------|
-| `install.sh` | Installer | No (source) | No |
+| `install.sh` | Entry point | No (source) | No |
+| `scripts/install` | Installer | No (source) | No |
 | `scripts/config` | Configuration | No | No |
 | `scripts/wrappers.conf` | Binary list | No | User can edit, then `lw-recreate` |
 | `scripts/generate_wrappers` | Generator | No | No |
