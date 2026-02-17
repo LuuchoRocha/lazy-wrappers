@@ -11,12 +11,12 @@ These pages explain the internals—how the system is assembled, what each scrip
 
 ## Contents
 
-| Document | Description |
-|----------|-------------|
-| [Architecture](architecture) | System design, component relationships, data flow |
-| [Lifecycle](lifecycle) | End-to-end walkthrough from install to steady-state |
-| [generate_wrappers](generate-wrappers) | Wrapper generation: templates, placeholders, edge cases |
-| [shell_hook](shell-hook) | Post-command hook: IPC via flag files, PATH cleanup, parent shell reloading |
-| [Loaders (nvmload & rbenvload)](loaders) | Lazy loaders: auto-install, initialization, completion, cross-shell compat |
-| [Static wrappers (nvm & rbenv)](static-wrappers) | Hand-crafted wrappers and why they differ from generated ones |
-| [Gotchas](gotchas) | Common pitfalls, tricky behaviors, and debugging tips |
+| Document                                         | Description                                                                 |
+| ------------------------------------------------ | --------------------------------------------------------------------------- |
+| [Architecture](architecture)                     | System design, component relationships, data flow                           |
+| [Lifecycle](lifecycle)                           | End-to-end walkthrough from install to steady-state                         |
+| [generate_wrappers](generate-wrappers)           | Wrapper generation: templates, placeholders, edge cases                     |
+| [shell-hook](shell-hook)                         | Post-command hook: IPC via flag files, PATH cleanup, parent shell reloading |
+| [Loaders (nvmload & rbenvload)](loaders)         | Lazy loaders: auto-install, initialization, completion, cross-shell compat  |
+| [Static wrappers (nvm & rbenv)](static-wrappers) | Hand-crafted wrappers and why they differ from generated ones               |
+| [Gotchas](gotchas)                               | Common pitfalls, tricky behaviors, and debugging tips                       |

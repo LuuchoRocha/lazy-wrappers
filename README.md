@@ -5,11 +5,13 @@
 Traditional shell configs load version managers eagerly on every terminal session—`nvm` typically adds 200-400ms of startup time. With lazy-wrappers, your shell starts in milliseconds and version managers load on-demand.
 
 **Measured improvements:**
+
 - Shell startup: **90% faster** vs traditional nvm loading (5-10ms vs 200-400ms)
 - First command: ~1-2ms one-time overhead to load the version manager
 - Subsequent commands: **zero overhead**—wrappers are removed from PATH after first use
 
 **Additional features:**
+
 - 🔧 Auto-installs nvm/rbenv if missing
 - 🎯 Works with shebangs (`#!/usr/bin/env node`)
 - 🛠️ Easy to customize and extend
@@ -31,16 +33,19 @@ cd lazy-wrappers
 ## Performance
 
 **What normally slows shells down:**
+
 - Traditional shell configs eagerly load version managers like `nvm` and `rbenv` at startup
 - `nvm` initialization alone adds 200-400ms to every new terminal
 - This cost is paid on every shell restart, multiplied across dozens of terminals per day
 
 **What lazy-wrappers defers:**
+
 - Version manager initialization is skipped at shell startup
 - Loading only happens when you first run a wrapped command (`node`, `npm`, `ruby`, `gem`, etc.)
 - After the first command, wrappers are removed from PATH—subsequent calls have zero overhead
 
 **When the speedup is most noticeable:**
+
 - Opening new terminal windows/tabs (instant startup vs 200-400ms delay)
 - Frequent shell restarts during development
 - Running quick commands that don't require node/ruby (shell starts fast, no unnecessary loading)
@@ -63,6 +68,7 @@ my-gem:rbenv     # wraps my-gem to load rbenv first
 ```
 
 Then regenerate wrappers:
+
 ```bash
 ~/.lazy-wrappers/scripts/generate_wrappers
 ```
@@ -83,7 +89,7 @@ Run `lw-benchmark` to measure the impact on your system. The benchmark compares 
 
 ### Example Results
 
-```
+```plain
 ┌──────────────────────────────────────────────────────────────────┐
 │  PART 1: Shell Startup Time                                       │
 └──────────────────────────────────────────────────────────────────┘
@@ -149,6 +155,7 @@ lw-uninstall
 ```
 
 This will:
+
 1. Remove lazy-wrappers configuration from your shell RC files
 2. Optionally delete the `~/.lazy-wrappers` directory
 3. Create backups before modifying any files
@@ -159,7 +166,8 @@ This will:
 
 **Symptom**: Running `node` or `ruby` doesn't trigger lazy loading.
 
-**Solution**: 
+**Solution**:
+
 1. Restart your terminal or run: `source ~/.bashrc` (or `~/.zshrc` for zsh)
 2. Verify wrappers are in PATH: `which node` should show `~/.lazy-wrappers/scripts/bin/node_wrappers/node`
 3. Check that your RC file was modified: `grep lazy-wrappers ~/.bashrc`
@@ -169,11 +177,14 @@ This will:
 **Symptom**: Shell still loads nvm/rbenv on startup despite lazy-wrappers.
 
 **Solution**:
+
 1. Check your RC files for existing nvm/rbenv initialization:
+
    ```bash
    grep -n "nvm.sh" ~/.bashrc ~/.bash_profile ~/.profile 2>/dev/null
    grep -n "rbenv init" ~/.bashrc ~/.bash_profile ~/.profile 2>/dev/null
    ```
+
 2. Comment out or remove the traditional nvm/rbenv loading lines
 3. Keep only the lazy-wrappers configuration (marked with `# lazy-wrappers:`)
 
@@ -182,6 +193,7 @@ This will:
 **Symptom**: Error message about git being required.
 
 **Solution**: Install git:
+
 ```bash
 # Ubuntu/Debian
 sudo apt-get install git
@@ -198,6 +210,7 @@ sudo dnf install git
 **Symptom**: Cannot execute wrapper scripts or write to installation directory.
 
 **Solution**:
+
 1. Ensure installation directory is writable: `ls -ld ~/.lazy-wrappers`
 2. Fix permissions if needed: `chmod -R u+rwX ~/.lazy-wrappers`
 3. Make wrappers executable: `chmod +x ~/.lazy-wrappers/scripts/bin/*/*`
@@ -207,6 +220,7 @@ sudo dnf install git
 **Symptom**: Commands hang or repeatedly call themselves.
 
 **Solution**: This should not happen with the current implementation, but if it does:
+
 1. Check that PATH modification in wrappers is working: `echo $PATH`
 2. Verify version manager is properly installed
 3. Try reinstalling: `lw-uninstall && ./install.sh --local`
@@ -216,6 +230,7 @@ sudo dnf install git
 **Symptom**: Shell startup is still slow.
 
 **Solution**:
+
 1. Run benchmarks to confirm: `lw-benchmark`
 2. Check for other slow RC file operations: `time source ~/.bashrc`
 3. Verify nvm/rbenv aren't being loaded elsewhere in your RC files
@@ -249,8 +264,9 @@ The default installation location is `~/.lazy-wrappers`. To change this, edit `s
 ## Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for:
+
 - Development setup
-- Code standards  
+- Code standards
 - Testing guidelines
 - How to submit changes
 

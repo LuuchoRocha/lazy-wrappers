@@ -8,10 +8,39 @@ set -euo pipefail
 BOLD='\033[1m'
 DIM='\033[2m'
 GREEN='\033[0;32m'
+WHITE='\033[0;37m'
 YELLOW='\033[0;33m'
 RED='\033[0;31m'
+TAB='\t'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
+
+print_banner() {
+    echo -e ''
+    echo -e "  ${WHITE}${DIM}╔═══════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "  ${WHITE}${DIM}║                    ${NC}${BOLD}Lazy Wrappers Installer${NC}${WHITE}${DIM}                    ║${NC}"
+    echo -e "  ${WHITE}${DIM}╚═══════════════════════════════════════════════════════════════╝${NC}"
+    echo -e ''
+}
+
+print_success() {
+
+    # Print success message
+    echo -e "\n${GREEN}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${GREEN}${BOLD}║${NC}            ${GREEN}${BOLD}✓ Installation completed successfully${NC}           ${GREEN}${BOLD}║${NC}"
+    echo -e "${GREEN}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}"
+
+    echo -e "\n${BOLD}Installed locations:${NC}"
+    echo -e "  ${DIM}Base directory:${NC}   $INSTALL_DIR"
+    echo -e "  ${DIM}Node wrappers:${NC}    $NODE_WRAPPERS_DIR"
+    echo -e "  ${DIM}Ruby wrappers:${NC}    $RUBY_WRAPPERS_DIR"
+    echo -e "  ${DIM}Commands:${NC}         $COMMANDS_DIR"
+
+    echo -e "\n${BOLD}Next steps:${NC}"
+    echo -e "  1. Restart your terminal or run ${DIM}source <shell config file>${NC} to apply changes immediately."
+    echo -e "  2. Use the ${DIM}lw${NC} command to manage your wrappers and configurations."
+    echo -e "  3. For more information and documentation, visit ${DIM}https://github.com/luuchorocha/lazy-wrappers${NC}"
+}
 
 SCRIPT_SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -29,9 +58,7 @@ if ! command -v git &>/dev/null; then
     echo -e "${YELLOW}⚠ Warning:${NC} git is not installed. It will be required if nvm or rbenv need to be cloned."
 fi
 
-echo -e "\n${BOLD}${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BOLD}${CYAN}║${NC}              ${BOLD}lazy-wrappers installer${NC}                       ${BOLD}${CYAN}║${NC}"
-echo -e "${BOLD}${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}\n"
+print_banner
 
 # Create installation directory
 echo -e "${BOLD}→ Installing to${NC} ${CYAN}$INSTALL_DIR${NC}"
@@ -59,7 +86,7 @@ fi
 
 # Copy lw-* commands to the commands directory
 echo -e "${DIM}  Copying commands...${NC}"
-for cmd_file in "$SCRIPT_SOURCE_DIR/bin/commands"/lw-*; do
+for cmd_file in "$SCRIPT_SOURCE_DIR/bin/commands"/lw*; do
     if [[ -f "$cmd_file" ]]; then
         cmd_name=$(basename "$cmd_file")
         if ! cp -f "$cmd_file" "$COMMANDS_DIR/$cmd_name"; then
@@ -98,7 +125,7 @@ if [[ -d "$RUBY_WRAPPERS_DIR" ]] && [[ -n "$(ls -A "$RUBY_WRAPPERS_DIR" 2>/dev/n
     fi
 fi
 
-for script in nvmload rbenvload shell_hook; do
+for script in nvmload rbenvload shell-hook; do
     if [[ -f "$INSTALL_DIR/scripts/$script" ]]; then
         chmod +x "$INSTALL_DIR/scripts/$script"
     fi
@@ -108,7 +135,7 @@ done
 # Use a guard to prevent duplicate PATH entries when shell config is sourced multiple times
 PATH_COMMENT="# lazy-wrappers: Add wrapper scripts to PATH and load shell hook"
 PATH_EXPORT="[[ \":\$PATH:\" != *\":$NODE_WRAPPERS_DIR:\"* ]] && export PATH=\"$NODE_WRAPPERS_DIR:$RUBY_WRAPPERS_DIR:$COMMANDS_DIR:\$PATH\""
-HOOK_SOURCE=". \"$INSTALL_DIR/scripts/shell_hook\""
+HOOK_SOURCE=". \"$INSTALL_DIR/scripts/shell-hook\""
 
 echo -e "\n${BOLD}→ Configuring shell${NC}"
 
@@ -139,7 +166,7 @@ for RC_FILE in "${RC_FILES[@]}"; do
             echo "$PATH_COMMENT"
             echo "$PATH_EXPORT"
             echo "$HOOK_SOURCE"
-        } >> "$RC_FILE" || {
+        } >>"$RC_FILE" || {
             echo -e "  ${RED}✗ Error:${NC} Failed to modify $RC_FILE"
             continue
         }
@@ -147,19 +174,5 @@ for RC_FILE in "${RC_FILES[@]}"; do
     fi
 done
 
-# Print success message
-echo -e "\n${GREEN}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}${BOLD}║${NC}            ${GREEN}${BOLD}✓ Installation completed successfully${NC}           ${GREEN}${BOLD}║${NC}"
-echo -e "${GREEN}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}"
-
-echo -e "\n${BOLD}Installed locations:${NC}"
-echo -e "  ${DIM}Base directory:${NC}   $INSTALL_DIR"
-echo -e "  ${DIM}Node wrappers:${NC}    $NODE_WRAPPERS_DIR"
-echo -e "  ${DIM}Ruby wrappers:${NC}    $RUBY_WRAPPERS_DIR"
-
-echo -e "\n${BOLD}Next steps:${NC}"
-echo -e "  ${CYAN}1.${NC} Restart your terminal ${DIM}(or run: source ${RC_FILES[0]})${NC}"
-echo -e "  ${CYAN}2.${NC} Test with: ${CYAN}node --version${NC} or ${CYAN}ruby --version${NC}"
-
-echo -e "\n${DIM}Tip: Your shell will now start faster! nvm/rbenv load only when needed.${NC}\n"
+print_success
 exit 0

@@ -44,7 +44,7 @@ for RC_FILE in "${RC_FILES[@]}"; do
               -e "\#$NODE_WRAPPERS_DIR#d" \
               -e "\#$RUBY_WRAPPERS_DIR#d" \
               -e "\#$COMMANDS_DIR#d" \
-              -e '\#shell_hook#d' \
+              -e '\#shell-hook#d' \
               "$RC_FILE" > "${RC_FILE}.tmp" && mv "${RC_FILE}.tmp" "$RC_FILE" || {
                 echo -e "  ${RED}✗ Error:${NC} Failed to modify $RC_FILE"
                 echo -e "    ${DIM}Backup available at ${RC_FILE}.bak${NC}"

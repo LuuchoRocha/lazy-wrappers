@@ -74,8 +74,8 @@ if [[ -x "$RBENV_DIR/bin/rbenv" ]]; then
     export RBENV_ALREADY_LOADED=1
     
     # Create flag file for shell hook if the directory is set
-    if [[ -n "${__LAZY_WRAPPERS_FLAGS_DIR:-}" ]]; then
-        if ! touch "$__LAZY_WRAPPERS_FLAGS_DIR/rbenv_loaded" 2>/dev/null; then
+    if [[ -n "${_LW_FLAGS_DIR:-}" ]]; then
+        if ! touch "$_LW_FLAGS_DIR/rbenv_loaded" 2>/dev/null; then
             # Silently fail - this is not critical, just optimization for shell hook
             true
         fi

@@ -1,0 +1,25 @@
+#!/bin/bash
+$()
+set -euo pipefail
+
+case "${1:-}" in
+"config" | "-c" | "--config")
+  exec "$(dirname "$0")/lw-recreate" "${@:2}"
+  ;;
+"benchmark" | "-b" | "--benchmark")
+  exec "$(dirname "$0")/lw-benchmark" "${@:2}"
+  ;;
+"uninstall" | "-u" | "--uninstall")
+  exec "$(dirname "$0")/lw-uninstall" "${@:2}"
+  ;;
+*)
+  echo "Usage: lw <command>"
+  echo "Commands:"
+  echo "  config      Edit wrappers.conf and regenerate wrapper scripts"
+  echo "  benchmark   Run benchmarks to compare wrapper performance"
+  echo "  uninstall   Uninstall lazy-wrappers completely"
+  exit 1
+  ;;
+esac
+
+exit 0

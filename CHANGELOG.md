@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🚀 Improved
 
-- **Performance & simplified wrapper generation** — Streamlined `generate_wrappers` and `shell_hook` scripts; removed `.sh` extensions for cleaner invocation
+- **Performance & simplified wrapper generation** — Streamlined `generate_wrappers` and `shell-hook` scripts; removed `.sh` extensions for cleaner invocation
 - **Prevented redundant re-loading** — Static wrappers for `nvm` and `rbenv` now skip loading if already initialized, avoiding unnecessary work
 - **Completions support** — Fixed rbenv and nvm completions so tab-completion works correctly after lazy-loading
 
@@ -68,23 +68,28 @@ First public release of lazy-wrappers — a tool to dramatically speed up your s
 ### Features
 
 #### Core Functionality
+
 - **Lazy-loading for nvm (Node.js)** — Load nvm only when you actually use `node`, `npm`, `npx`, or related commands
 - **Lazy-loading for rbenv (Ruby)** — Load rbenv only when you use `ruby`, `gem`, `bundle`, or related commands
 - **Auto-installation** — Automatically clones nvm or rbenv if not already installed on your system
 - **Shell hook** — Removes wrappers from PATH after first command, ensuring zero overhead for subsequent commands
 
 #### Wrapped Binaries
+
 Out of the box, the following commands are wrapped:
 
 **Node.js (nvm):**
+
 - `node`, `npm`, `npx`, `nvm`, `yarn`, `pnpm`, `corepack`
 - `eslint`, `prettier`, `tsc`
 
 **Ruby (rbenv):**
+
 - `ruby`, `gem`, `rbenv`
 - `bundle`, `rails`, `rake`, `rspec`, `rubocop`, `solargraph`
 
 #### Shell Support
+
 - **bash** — Full support via `.bash_profile` (or `.profile`) and `.bashrc`
 - **zsh** — Full support via `.zprofile` and `.zshrc`
 - **fish** — Support via `.config/fish/config.fish`
@@ -93,16 +98,19 @@ Out of the box, the following commands are wrapped:
 - **dash** — Support via `.profile`
 
 #### Installation & Uninstallation
+
 - One-line installer: `curl -fsSL https://raw.githubusercontent.com/LuuchoRocha/lazy-wrappers/main/install.sh | bash`
 - Manual installation via `./install.sh --local`
 - Clean uninstallation via `lw-uninstall` with automatic backup of modified files
 
 #### Customization
+
 - Single configuration file (`wrappers.conf`) to add or remove wrapped binaries
 - Simple format: `binary_name:loader` (where loader is `nvm` or `rbenv`)
 - Regenerate wrappers anytime with `generate_wrappers`
 
 #### Developer Tools
+
 - Comprehensive benchmarking script (`benchmark.sh`) to measure performance on your system
 - ShellCheck-compliant scripts for reliability
 - Detailed documentation and troubleshooting guide
@@ -111,12 +119,12 @@ Out of the box, the following commands are wrapped:
 
 Typical results show **~95% faster shell startup** compared to traditional nvm/rbenv loading:
 
-| Configuration | Startup Time |
-|--------------|--------------|
-| Baseline (no version managers) | ~6ms |
-| Traditional nvm loading | ~250ms |
-| Traditional rbenv loading | ~70ms |
-| **With lazy-wrappers** | **~10ms** |
+| Configuration                  | Startup Time |
+| ------------------------------ | ------------ |
+| Baseline (no version managers) | ~6ms         |
+| Traditional nvm loading        | ~250ms       |
+| Traditional rbenv loading      | ~70ms        |
+| **With lazy-wrappers**         | **~10ms**    |
 
 After the first command in a session, wrappers are removed from PATH — all subsequent commands run at native speed with **zero overhead**.
 

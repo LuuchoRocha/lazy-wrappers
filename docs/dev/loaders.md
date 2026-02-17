@@ -15,6 +15,7 @@ These scripts are the actual version manager initializers. They:
 4. Mark the manager as loaded (env var + flag file).
 
 They are called from two contexts:
+
 - **From generated wrappers** — when a wrapped binary is invoked for the first time.
 - **From static wrappers** — when `nvm` or `rbenv` themselves are called.
 
@@ -29,6 +30,7 @@ fi
 ```
 
 The `return || exit` pattern handles both execution contexts:
+
 - `return 0` works when the script is **sourced** (`. nvmload`).
 - `exit 0` works when the script is **executed** (`./nvmload`).
 - `2>/dev/null` suppresses the "return: can only return from a function" error when executed directly.
@@ -36,12 +38,12 @@ The `return || exit` pattern handles both execution contexts:
 ### Flag file creation
 
 ```bash
-if [[ -n "${__LAZY_WRAPPERS_FLAGS_DIR:-}" ]]; then
-    touch "$__LAZY_WRAPPERS_FLAGS_DIR/nvm_loaded" 2>/dev/null || true
+if [[ -n "${_LW_FLAGS_DIR:-}" ]]; then
+    touch "$_LW_FLAGS_DIR/nvm_loaded" 2>/dev/null || true
 fi
 ```
 
-This is the IPC mechanism to communicate with `shell_hook`. The `|| true` ensures the script does not fail if the flags directory does not exist (e.g., when running outside the lazy-wrappers context).
+This is the IPC mechanism to communicate with `shell-hook`. The `|| true` ensures the script does not fail if the flags directory does not exist (e.g., when running outside the lazy-wrappers context).
 
 ---
 
@@ -80,6 +82,7 @@ fi
 ```
 
 Key details:
+
 - Uses `git describe --abbrev=0 --tags` to find the latest tag (e.g., `v0.40.1`).
 - Falls back to `main` or `master` if no tags exist.
 - `--quiet` suppresses git output.
@@ -174,22 +177,22 @@ This prevents `fpath` from growing if the loader runs multiple times. Temporary 
 
 ## Error handling comparison
 
-| Scenario | nvmload | rbenvload |
-|----------|---------|-----------|
-| Already loaded | `return 0` early | `return 0` early |
-| git not available | Error + `return 1` | Error + `return 1` |
-| Clone fails | Error + `return 1` | Error + `return 1` |
-| Tag checkout fails | Warning, use default branch | N/A (no tag checkout) |
-| ruby-build clone fails | N/A | Warning only (non-fatal) |
-| nvm.sh / rbenv binary missing | Error + `return 1` | Error + `return 1` |
-| Flag file write fails | Silent (non-critical) | Silent (non-critical) |
+| Scenario                      | nvmload                     | rbenvload                |
+| ----------------------------- | --------------------------- | ------------------------ |
+| Already loaded                | `return 0` early            | `return 0` early         |
+| git not available             | Error + `return 1`          | Error + `return 1`       |
+| Clone fails                   | Error + `return 1`          | Error + `return 1`       |
+| Tag checkout fails            | Warning, use default branch | N/A (no tag checkout)    |
+| ruby-build clone fails        | N/A                         | Warning only (non-fatal) |
+| nvm.sh / rbenv binary missing | Error + `return 1`          | Error + `return 1`       |
+| Flag file write fails         | Silent (non-critical)       | Silent (non-critical)    |
 
 ## Environment variables
 
-| Variable | Set by | Used by | Purpose |
-|----------|--------|---------|---------|
-| `NVM_DIR` | User or nvmload | nvmload, shell\_hook | nvm installation directory |
-| `NVM_ALREADY_LOADED` | nvmload, shell\_hook | nvmload, shell\_hook | Prevents redundant loading |
-| `RBENV_DIR` | User or rbenvload | rbenvload, shell\_hook | rbenv installation directory |
-| `RBENV_ALREADY_LOADED` | rbenvload, shell\_hook | rbenvload, shell\_hook | Prevents redundant loading |
-| `__LAZY_WRAPPERS_FLAGS_DIR` | shell\_hook | nvmload, rbenvload | Path to per-session flag files |
+| Variable               | Set by                | Used by               | Purpose                        |
+| ---------------------- | --------------------- | --------------------- | ------------------------------ |
+| `NVM_DIR`              | User or nvmload       | nvmload, shell_hook   | nvm installation directory     |
+| `NVM_ALREADY_LOADED`   | nvmload, shell_hook   | nvmload, shell_hook   | Prevents redundant loading     |
+| `RBENV_DIR`            | User or rbenvload     | rbenvload, shell_hook | rbenv installation directory   |
+| `RBENV_ALREADY_LOADED` | rbenvload, shell_hook | rbenvload, shell_hook | Prevents redundant loading     |
+| `_LW_FLAGS_DIR`        | shell_hook            | nvmload, rbenvload    | Path to per-session flag files |

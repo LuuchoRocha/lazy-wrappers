@@ -44,11 +44,11 @@ generate_nvm_wrapper() {
 # Lazy wrapper for __BINARY__
 
 # Prevent infinite recursion
-if [[ -n "${__LAZY_WRAPPERS_LOADING___BINARY__:-}" ]]; then
+if [[ -n "${_LW_LOADING___BINARY__:-}" ]]; then
     echo "Error: wrapper recursion detected for __BINARY__" >&2
     exit 1
 fi
-export __LAZY_WRAPPERS_LOADING___BINARY__=1
+export _LW_LOADING___BINARY__=1
 
 # Remove ALL occurrences of wrapper directory from PATH to prevent recursion
 WRAPPER_DIR="__NODE_WRAPPERS__"
@@ -107,11 +107,11 @@ generate_rbenv_wrapper() {
 # Lazy wrapper for __BINARY__
 
 # Prevent infinite recursion
-if [[ -n "${__LAZY_WRAPPERS_LOADING___BINARY__:-}" ]]; then
+if [[ -n "${_LW_LOADING___BINARY__:-}" ]]; then
     echo "Error: wrapper recursion detected for __BINARY__" >&2
     exit 1
 fi
-export __LAZY_WRAPPERS_LOADING___BINARY__=1
+export _LW_LOADING___BINARY__=1
 
 # Remove ALL occurrences of wrapper directory from PATH to prevent recursion
 WRAPPER_DIR="__RUBY_WRAPPERS__"
