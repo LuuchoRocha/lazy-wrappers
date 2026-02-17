@@ -13,9 +13,10 @@ This is the most important thing to understand.
 
 When a wrapper runs `exec node "$@"`, the wrapper process is replaced by the real node. Everything that happened in that process—sourcing nvm, modifying PATH—is gone once node exits. The parent (interactive) shell never saw any of it.
 
-This is why `shell_hook` exists. It re-loads the version manager into the parent shell after the wrapped command finishes. Without it, every wrapped command would go through the wrapper again.
+This is why `shell-hook` exists. It re-loads the version manager into the parent shell after the wrapped command finishes. Without it, every wrapped command would go through the wrapper again.
 
 **If something feels broken, check whether the hook is running.** Common symptoms:
+
 - `nvm` works from a wrapper call but `nvm use 18` later says "nvm not found."
 - Running `node` always takes 200 ms instead of being instant after the first call.
 
@@ -45,6 +46,7 @@ The colon-padding technique (`PATH=":$PATH:"`) is robust but unfamiliar to many 
 ## nvm is a function, not a binary
 
 This trips up many people. `nvm` is defined by sourcing `nvm.sh`. It lives in shell memory. You cannot:
+
 - `exec nvm` — there is no nvm executable.
 - `which nvm` — it is not in PATH.
 - Call it from a subprocess that has not sourced `nvm.sh`.
@@ -60,6 +62,7 @@ After `eval "$(rbenv init - bash)"`, rbenv creates a shell function that wraps t
 ## `return` vs `exit` in loaders
 
 The loaders (nvmload, rbenvload) use `return 0 2>/dev/null || exit 0` because they can be:
+
 - **Sourced** (from a wrapper via `. nvmload`) → `return` works, `exit` would kill the calling script.
 - **Executed** (directly, for testing) → `return` fails with an error, `exit` works.
 
@@ -71,25 +74,25 @@ Flag files live in `/tmp/lazy-wrappers-$$` and are cleaned up by the EXIT trap. 
 
 ## Shell-specific quirks
 
-### zsh: BASH\_SOURCE vs $0
+### zsh: BASH_SOURCE vs $0
 
-`shell_hook` needs to find its own directory. In bash the canonical way is `${BASH_SOURCE[0]}`. In zsh, `$0` gives the path of the sourced script. The hook handles both:
+`shell-hook` needs to find its own directory. In bash the canonical way is `${BASH_SOURCE[0]}`. In zsh, `$0` gives the path of the sourced script. The hook handles both:
 
 ```bash
 if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
-    __LAZY_WRAPPERS_HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    _LW_HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
-    __LAZY_WRAPPERS_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+    _LW_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 fi
 ```
 
 ### zsh completion (bashcompinit)
 
-nvm's completion uses bash's `complete` builtin. zsh needs `bashcompinit` loaded first. Both `nvmload` and `shell_hook`'s parent-shell loader handle this.
+nvm's completion uses bash's `complete` builtin. zsh needs `bashcompinit` loaded first. Both `nvmload` and `shell-hook`'s parent-shell loader handle this.
 
-### fish shell
+### Other shells (fish, ksh, etc.)
 
-The config file covers fish detection, but the wrappers and shell hook are bash scripts. Fish support would require fish-native wrapper scripts and a fish-compatible hook. This is currently unsupported.
+Automatic RC file configuration only supports bash and zsh. The wrappers and shell hook are bash scripts. Other shells (fish, ksh, tcsh, etc.) would require native wrapper scripts and shell-specific hooks. Users on other shells can manually add wrapper directories to PATH.
 
 ## Testing changes
 

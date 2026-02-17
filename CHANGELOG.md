@@ -5,6 +5,39 @@ All notable changes to lazy-wrappers will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-02-17
+
+### ✨ Added
+
+- **`lw` command** — New unified entry point for lazy-wrappers management (`lw config`, `lw benchmark`, `lw uninstall`)
+
+### 🚀 Improved
+
+- **Renamed internal variables** — Shortened all `__LAZY_WRAPPERS_*` variables to `_LW_*` for readability (e.g., `_LW_FLAGS_DIR`, `_LW_HOOK_DIR`, `_LW_NODE_DIR`)
+- **Renamed shell hook file** — `shell_hook` → `shell-hook` for consistency with other script names
+- **Idempotent installer** — Re-running `install.sh` now cleans existing lazy-wrappers lines from RC files before re-adding, preventing duplicate entries
+- **Shell-hook EXIT trap handling** — Properly chains with existing EXIT traps in bash; uses `zshexit` hook in zsh for cleanup of the flags directory
+- **Fixed wrapper guard variables** — Generated wrappers now use properly sanitized guard variable names (`_LW_LOADING_<name>`) instead of literal placeholders
+- **Unified flags directory variable** — Static wrappers (`nvm`, `rbenv`) now use `_LW_FLAGS_DIR` consistently, with `__LAZY_WRAPPERS_FLAGS_DIR` fallback for compatibility
+
+### 🔧 Changed
+
+- **Shell support narrowed to bash and zsh** — Removed automatic RC file configuration for fish, ksh, tcsh, csh, and dash; unsupported shells now skip RC config with manual setup instructions
+- **Uninstaller handles all shells** — `lw-uninstall` gracefully handles shells with no auto-configured RC files and cleans up legacy `shell_hook`/`shell_hook.sh` references
+- Updated documentation to reflect bash/zsh-only automatic configuration
+- Extensive formatting fixes across all developer documentation
+
+### 🐛 Fixed
+
+- **Removed erroneous `$()` in `lw` command** — Fixed syntax error in the `lw` entrypoint script
+- **Fixed quoting in shell-hook** — Shell version checks now use `${ZSH_VERSION:-}` and `${BASH_VERSION:-}` to avoid unbound variable errors
+
+## [0.1.2] - 2026-02-16
+
+### 🐛 Fixed
+
+- **Fixed unset variable in install.sh** — `$1` → `${1:-}` to prevent errors when no argument is passed
+
 ## [0.1.1] - 2026-02-15
 
 ### 🚀 Improved
@@ -30,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🚀 Improved
 
-- **Performance & simplified wrapper generation** — Streamlined `generate_wrappers` and `shell_hook` scripts; removed `.sh` extensions for cleaner invocation
+- **Performance & simplified wrapper generation** — Streamlined `generate_wrappers` and `shell-hook` scripts; removed `.sh` extensions for cleaner invocation
 - **Prevented redundant re-loading** — Static wrappers for `nvm` and `rbenv` now skip loading if already initialized, avoiding unnecessary work
 - **Completions support** — Fixed rbenv and nvm completions so tab-completion works correctly after lazy-loading
 
@@ -68,23 +101,28 @@ First public release of lazy-wrappers — a tool to dramatically speed up your s
 ### Features
 
 #### Core Functionality
+
 - **Lazy-loading for nvm (Node.js)** — Load nvm only when you actually use `node`, `npm`, `npx`, or related commands
 - **Lazy-loading for rbenv (Ruby)** — Load rbenv only when you use `ruby`, `gem`, `bundle`, or related commands
 - **Auto-installation** — Automatically clones nvm or rbenv if not already installed on your system
 - **Shell hook** — Removes wrappers from PATH after first command, ensuring zero overhead for subsequent commands
 
 #### Wrapped Binaries
+
 Out of the box, the following commands are wrapped:
 
 **Node.js (nvm):**
+
 - `node`, `npm`, `npx`, `nvm`, `yarn`, `pnpm`, `corepack`
 - `eslint`, `prettier`, `tsc`
 
 **Ruby (rbenv):**
+
 - `ruby`, `gem`, `rbenv`
 - `bundle`, `rails`, `rake`, `rspec`, `rubocop`, `solargraph`
 
 #### Shell Support
+
 - **bash** — Full support via `.bash_profile` (or `.profile`) and `.bashrc`
 - **zsh** — Full support via `.zprofile` and `.zshrc`
 - **fish** — Support via `.config/fish/config.fish`
@@ -93,16 +131,19 @@ Out of the box, the following commands are wrapped:
 - **dash** — Support via `.profile`
 
 #### Installation & Uninstallation
+
 - One-line installer: `curl -fsSL https://raw.githubusercontent.com/LuuchoRocha/lazy-wrappers/main/install.sh | bash`
 - Manual installation via `./install.sh --local`
 - Clean uninstallation via `lw-uninstall` with automatic backup of modified files
 
 #### Customization
+
 - Single configuration file (`wrappers.conf`) to add or remove wrapped binaries
 - Simple format: `binary_name:loader` (where loader is `nvm` or `rbenv`)
 - Regenerate wrappers anytime with `generate_wrappers`
 
 #### Developer Tools
+
 - Comprehensive benchmarking script (`benchmark.sh`) to measure performance on your system
 - ShellCheck-compliant scripts for reliability
 - Detailed documentation and troubleshooting guide
@@ -111,12 +152,12 @@ Out of the box, the following commands are wrapped:
 
 Typical results show **~95% faster shell startup** compared to traditional nvm/rbenv loading:
 
-| Configuration | Startup Time |
-|--------------|--------------|
-| Baseline (no version managers) | ~6ms |
-| Traditional nvm loading | ~250ms |
-| Traditional rbenv loading | ~70ms |
-| **With lazy-wrappers** | **~10ms** |
+| Configuration                  | Startup Time |
+| ------------------------------ | ------------ |
+| Baseline (no version managers) | ~6ms         |
+| Traditional nvm loading        | ~250ms       |
+| Traditional rbenv loading      | ~70ms        |
+| **With lazy-wrappers**         | **~10ms**    |
 
 After the first command in a session, wrappers are removed from PATH — all subsequent commands run at native speed with **zero overhead**.
 
@@ -129,6 +170,8 @@ After the first command in a session, wrappers are removed from PATH — all sub
 
 ---
 
+[0.1.3]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/0.1.3
+[0.1.2]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/0.1.2
 [0.1.1]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/0.1.1
 [0.1.0]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/0.1.0
 [0.0.4]: https://github.com/LuuchoRocha/lazy-wrappers/releases/tag/v0.0.4

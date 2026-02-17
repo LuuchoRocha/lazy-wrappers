@@ -5,18 +5,18 @@
 # with the actual version manager paths
 
 # Resolve paths dynamically from this script's location
-# shell_hook lives at <install_dir>/scripts/shell_hook
+# shell-hook lives at <install_dir>/scripts/shell-hook
 if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
-    __LAZY_WRAPPERS_HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    _LW_HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
     # zsh: $0 is the sourced file path when sourcing
-    __LAZY_WRAPPERS_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+    _LW_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 fi
-__LAZY_WRAPPERS_NODE_DIR="$__LAZY_WRAPPERS_HOOK_DIR/bin/node_wrappers"
-__LAZY_WRAPPERS_RUBY_DIR="$__LAZY_WRAPPERS_HOOK_DIR/bin/ruby_wrappers"
+_LW_NODE_DIR="$_LW_HOOK_DIR/bin/node_wrappers"
+_LW_RUBY_DIR="$_LW_HOOK_DIR/bin/ruby_wrappers"
 
 # Use flag files to track which version managers have been loaded
-__LAZY_WRAPPERS_FLAGS_DIR="${XDG_RUNTIME_DIR:-/tmp}/lazy-wrappers-$$"
+_LW_FLAGS_DIR="${XDG_RUNTIME_DIR:-/tmp}/lazy-wrappers-$$"
 
 __lazy_wrappers_load_nvm_into_parent_shell() {
     export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
@@ -82,10 +82,10 @@ __lazy_wrappers_load_rbenv_into_parent_shell() {
 
 __lazy_wrappers_cleanup() {
     # Remove node_wrappers from PATH and load nvm into this shell if flag exists
-    if [[ -f "$__LAZY_WRAPPERS_FLAGS_DIR/nvm_loaded" && "$PATH" == *"node_wrappers"* ]]; then
+    if [[ -f "$_LW_FLAGS_DIR/nvm_loaded" && "$PATH" == *"node_wrappers"* ]]; then
         PATH=":$PATH:"
-        while [[ "$PATH" == *":$__LAZY_WRAPPERS_NODE_DIR:"* ]]; do
-            PATH="${PATH//:$__LAZY_WRAPPERS_NODE_DIR:/:}"
+        while [[ "$PATH" == *":$_LW_NODE_DIR:"* ]]; do
+            PATH="${PATH//:$_LW_NODE_DIR:/:}"
         done
         PATH="${PATH#:}"
         PATH="${PATH%:}"
@@ -97,10 +97,10 @@ __lazy_wrappers_cleanup() {
     fi
     
     # Remove ruby_wrappers from PATH and load rbenv into this shell if flag exists
-    if [[ -f "$__LAZY_WRAPPERS_FLAGS_DIR/rbenv_loaded" && "$PATH" == *"ruby_wrappers"* ]]; then
+    if [[ -f "$_LW_FLAGS_DIR/rbenv_loaded" && "$PATH" == *"ruby_wrappers"* ]]; then
         PATH=":$PATH:"
-        while [[ "$PATH" == *":$__LAZY_WRAPPERS_RUBY_DIR:"* ]]; do
-            PATH="${PATH//:$__LAZY_WRAPPERS_RUBY_DIR:/:}"
+        while [[ "$PATH" == *":$_LW_RUBY_DIR:"* ]]; do
+            PATH="${PATH//:$_LW_RUBY_DIR:/:}"
         done
         PATH="${PATH#:}"
         PATH="${PATH%:}"
@@ -112,23 +112,49 @@ __lazy_wrappers_cleanup() {
     fi
 }
 
-# Create the flags directory for this shell session
-mkdir -p "$__LAZY_WRAPPERS_FLAGS_DIR" 2>/dev/null
+__lazy_wrappers_cleanup_flags_dir() {
+    rm -rf "$_LW_FLAGS_DIR" 2>/dev/null || true
+}
 
-# Clean up flags directory on shell exit
-trap 'rm -rf "$__LAZY_WRAPPERS_FLAGS_DIR" 2>/dev/null' EXIT
+__lazy_wrappers_install_bash_exit_cleanup() {
+    local trap_output=""
+    local existing_exit_trap=""
+
+    trap_output="$(trap -p EXIT 2>/dev/null || true)"
+    if [[ -n "$trap_output" ]]; then
+        existing_exit_trap="${trap_output#trap -- \'}"
+        existing_exit_trap="${existing_exit_trap%\' EXIT}"
+    fi
+
+    if [[ "$existing_exit_trap" == *"__lazy_wrappers_cleanup_flags_dir"* ]]; then
+        return 0
+    fi
+
+    if [[ -n "$existing_exit_trap" ]]; then
+        trap "__lazy_wrappers_cleanup_flags_dir; $existing_exit_trap" EXIT
+    else
+        trap "__lazy_wrappers_cleanup_flags_dir" EXIT
+    fi
+}
+
+# Create the flags directory for this shell session
+mkdir -p "$_LW_FLAGS_DIR" 2>/dev/null
 
 # Install the hook based on shell type
-if [[ -n "$ZSH_VERSION" ]]; then
+if [[ -n "${ZSH_VERSION:-}" ]]; then
     # Zsh: use precmd hook
     autoload -Uz add-zsh-hook
     add-zsh-hook precmd __lazy_wrappers_cleanup
-elif [[ -n "$BASH_VERSION" ]]; then
+    add-zsh-hook zshexit __lazy_wrappers_cleanup_flags_dir
+elif [[ -n "${BASH_VERSION:-}" ]]; then
     # Bash: use PROMPT_COMMAND
-    if [[ "$PROMPT_COMMAND" != *"__lazy_wrappers_cleanup"* ]]; then
+    if [[ "${PROMPT_COMMAND:-}" != *"__lazy_wrappers_cleanup"* ]]; then
         PROMPT_COMMAND="__lazy_wrappers_cleanup${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
     fi
+    __lazy_wrappers_install_bash_exit_cleanup
+else
+    trap "__lazy_wrappers_cleanup_flags_dir" EXIT
 fi
 
 # Export the flags dir so wrappers can use it
-export __LAZY_WRAPPERS_FLAGS_DIR
+export _LW_FLAGS_DIR

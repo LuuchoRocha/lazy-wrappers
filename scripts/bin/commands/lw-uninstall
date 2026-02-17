@@ -34,6 +34,9 @@ echo -e "${BOLD}${CYAN}╚══════════════════
 echo -e "${BOLD}→ Cleaning shell configuration${NC}"
 
 # Remove PATH reference from all shell configuration files
+if [[ ${#RC_FILES[@]} -eq 0 ]]; then
+    echo -e "  ${DIM}─${NC} No auto-configured RC files for shell '$USER_SHELL' ${DIM}(skipped)${NC}"
+fi
 for RC_FILE in "${RC_FILES[@]}"; do
     if [[ -f "$RC_FILE" ]]; then
         if cp "$RC_FILE" "${RC_FILE}.bak"; then
@@ -44,7 +47,9 @@ for RC_FILE in "${RC_FILES[@]}"; do
               -e "\#$NODE_WRAPPERS_DIR#d" \
               -e "\#$RUBY_WRAPPERS_DIR#d" \
               -e "\#$COMMANDS_DIR#d" \
+              -e '\#shell-hook#d' \
               -e '\#shell_hook#d' \
+              -e '\#shell_hook.sh#d' \
               "$RC_FILE" > "${RC_FILE}.tmp" && mv "${RC_FILE}.tmp" "$RC_FILE" || {
                 echo -e "  ${RED}✗ Error:${NC} Failed to modify $RC_FILE"
                 echo -e "    ${DIM}Backup available at ${RC_FILE}.bak${NC}"

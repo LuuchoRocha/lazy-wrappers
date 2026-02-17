@@ -34,11 +34,11 @@ sed -e "s|__BINARY__|$binary_name|g" \
 - Writes to a `.tmp` file then `mv`s it back — this is the cross-platform alternative to `sed -i`, which behaves differently on macOS vs Linux.
 - Three placeholders are replaced:
 
-| Placeholder | Replaced with | Purpose |
-|-------------|--------------|---------|
-| `__BINARY__` | The binary name (e.g., `node`) | Error messages, `command -v` checks, recursion guard, `exec` |
-| `__NODE_WRAPPERS__` / `__RUBY_WRAPPERS__` | Absolute path to wrapper directory | Removing the directory from PATH |
-| `__SCRIPTS__` | Absolute path to scripts directory | Sourcing `nvmload` / `rbenvload` |
+| Placeholder                               | Replaced with                      | Purpose                                                      |
+| ----------------------------------------- | ---------------------------------- | ------------------------------------------------------------ |
+| `__BINARY__`                              | The binary name (e.g., `node`)     | Error messages, `command -v` checks, recursion guard, `exec` |
+| `__NODE_WRAPPERS__` / `__RUBY_WRAPPERS__` | Absolute path to wrapper directory | Removing the directory from PATH                             |
+| `__SCRIPTS__`                             | Absolute path to scripts directory | Sourcing `nvmload` / `rbenvload`                             |
 
 ### Static wrapper exclusion
 
@@ -47,6 +47,7 @@ STATIC_WRAPPERS=("nvm" "rbenv")
 ```
 
 `nvm` and `rbenv` themselves need special handling:
+
 - `nvm` is a shell **function**, not a binary — you cannot `exec` it.
 - `rbenv` needs `rbenv init` which sets up shims and completions.
 
@@ -61,11 +62,11 @@ Here is the nvm template with placeholders replaced for `node`:
 # Lazy wrapper for node
 
 # Prevent infinite recursion
-if [[ -n "${__LAZY_WRAPPERS_LOADING_node:-}" ]]; then
+if [[ -n "${_LW_LOADING_node:-}" ]]; then
     echo "Error: wrapper recursion detected for node" >&2
     exit 1
 fi
-export __LAZY_WRAPPERS_LOADING_node=1
+export _LW_LOADING_node=1
 
 # Remove ALL occurrences of wrapper directory from PATH
 WRAPPER_DIR="/home/user/.lazy-wrappers/scripts/bin/node_wrappers"
@@ -119,14 +120,14 @@ A single substitution is not enough because the entry might appear multiple time
 ## Recursion guard
 
 ```bash
-if [[ -n "${__LAZY_WRAPPERS_LOADING_node:-}" ]]; then
+if [[ -n "${_LW_LOADING_node:-}" ]]; then
     echo "Error: wrapper recursion detected for node" >&2
     exit 1
 fi
-export __LAZY_WRAPPERS_LOADING_node=1
+export _LW_LOADING_node=1
 ```
 
-Prevents infinite loops if PATH removal fails, the wrapper calls itself, or the loader triggers the same binary. The env var name is binary-specific (`__LAZY_WRAPPERS_LOADING_node`) to avoid collisions.
+Prevents infinite loops if PATH removal fails, the wrapper calls itself, or the loader triggers the same binary. The env var name is binary-specific (`_LW_LOADING_node`) to avoid collisions.
 
 ## wrappers.conf format
 
@@ -135,7 +136,7 @@ Prevents infinite loops if PATH removal fails, the wrapper calls itself, or the 
 binary_name:loader
 ```
 
-- **binary\_name** — the command to wrap (e.g., `node`, `prettier`)
+- **binary_name** — the command to wrap (e.g., `node`, `prettier`)
 - **loader** — `nvm` or `rbenv`
 - Parsed with `IFS=:` in a `while read` loop
 - Whitespace is trimmed with `xargs`

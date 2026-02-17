@@ -1,11 +1,11 @@
 ---
 layout: default
-title: shell_hook
+title: shell-hook
 ---
 
-# shell_hook
+# shell-hook
 
-> Source: `scripts/shell_hook`
+> Source: `scripts/shell-hook`
 
 ## The problem it solves
 
@@ -14,6 +14,7 @@ Wrappers run in subshells. When `node_wrappers/node` sources nvm and execs the r
 Without the hook, every subsequent `node` call would go through the wrapper again.
 
 The shell hook:
+
 1. Detects that a version manager was loaded (via flag files)
 2. Removes the wrapper directories from the parent shell's PATH
 3. Loads the version manager into the parent shell
@@ -23,21 +24,21 @@ The shell hook:
 
 ```bash
 # Per-session flags directory (PID-scoped)
-__LAZY_WRAPPERS_FLAGS_DIR="${XDG_RUNTIME_DIR:-/tmp}/lazy-wrappers-$$"
+_LW_FLAGS_DIR="${XDG_RUNTIME_DIR:-/tmp}/lazy-wrappers-$$"
 
-mkdir -p "$__LAZY_WRAPPERS_FLAGS_DIR" 2>/dev/null
-trap 'rm -rf "$__LAZY_WRAPPERS_FLAGS_DIR" 2>/dev/null' EXIT
-export __LAZY_WRAPPERS_FLAGS_DIR
+mkdir -p "$_LW_FLAGS_DIR" 2>/dev/null
+export _LW_FLAGS_DIR
 ```
 
 ### Why PID-scoped flags?
 
 `$$` is the parent shell's PID. This ensures:
+
 - Each terminal session has its own flags directory.
 - Multiple terminals do not interfere with each other.
-- Flag files created by wrapper subshells land in the correct parent's directory (child processes inherit `$__LAZY_WRAPPERS_FLAGS_DIR`).
+- Flag files created by wrapper subshells land in the correct parent's directory (child processes inherit `$_LW_FLAGS_DIR`).
 
-### XDG\_RUNTIME\_DIR fallback
+### XDG_RUNTIME_DIR fallback
 
 Uses `$XDG_RUNTIME_DIR` (typically `/run/user/1000/`) when available — a tmpfs mount, making flag-file I/O essentially free. Falls back to `/tmp` otherwise.
 
@@ -54,26 +55,35 @@ elif [[ -n "$BASH_VERSION" ]]; then
 fi
 ```
 
-| Shell | Mechanism | When it fires |
-|-------|-----------|---------------|
-| zsh | `precmd` hook via `add-zsh-hook` | Before each prompt |
-| bash | `PROMPT_COMMAND` | Before each prompt |
+| Shell | Mechanism                        | When it fires      |
+| ----- | -------------------------------- | ------------------ |
+| zsh   | `precmd` hook via `add-zsh-hook` | Before each prompt |
+| bash  | `PROMPT_COMMAND`                 | Before each prompt |
+
+Exit cleanup:
+
+| Shell | Mechanism                               | Purpose                 |
+| ----- | --------------------------------------- | ----------------------- |
+| zsh   | `zshexit` hook via `add-zsh-hook`       | Removes flags directory |
+| bash  | EXIT trap (chained with existing traps) | Removes flags directory |
+| other | `trap ... EXIT`                         | Removes flags directory |
 
 Notes on the bash registration:
+
 - Checks if already registered (prevents duplicates from re-sourcing).
 - **Prepends** to ensure cleanup runs before other prompt commands.
-- `${PROMPT_COMMAND:+; $PROMPT_COMMAND}` handles an empty or unset PROMPT\_COMMAND gracefully.
+- `${PROMPT_COMMAND:+; $PROMPT_COMMAND}` handles an empty or unset PROMPT_COMMAND gracefully.
 
 ## The cleanup function
 
 ```bash
 __lazy_wrappers_cleanup() {
-    if [[ -f "$__LAZY_WRAPPERS_FLAGS_DIR/nvm_loaded" \
+    if [[ -f "$_LW_FLAGS_DIR/nvm_loaded" \
        && "$PATH" == *"node_wrappers"* ]]; then
         # Remove node_wrappers from PATH (while loop for duplicates)
         PATH=":$PATH:"
-        while [[ "$PATH" == *":$__LAZY_WRAPPERS_NODE_DIR:"* ]]; do
-            PATH="${PATH//:$__LAZY_WRAPPERS_NODE_DIR:/:}"
+        while [[ "$PATH" == *":$_LW_NODE_DIR:"* ]]; do
+            PATH="${PATH//:$_LW_NODE_DIR:/:}"
         done
         PATH="${PATH#:}"; PATH="${PATH%:}"
         # Load nvm into THIS (parent) shell
@@ -94,6 +104,7 @@ Both conditions must be true:
 2. **Wrapper dir still in PATH** — cleanup has not already happened.
 
 This means:
+
 - If the manager was never used → no work done (fast path).
 - If cleanup already ran → no work done (idempotent).
 - Only on the first prompt after the first wrapped command → actual cleanup.
@@ -144,12 +155,12 @@ __lazy_wrappers_load_rbenv_into_parent_shell() {
 
 ## Performance characteristics
 
-| Scenario | Cost |
-|----------|------|
-| No wrapper invoked yet | ~0 ms (two `-f` checks on non-existent files) |
-| After a manager loaded, first cleanup | ~200–400 ms (sources nvm.sh / rbenv init) |
-| After cleanup already ran | ~0 ms (PATH check fast-fails) |
-| Steady state | ~0 ms (flag exists but PATH check fails) |
+| Scenario                              | Cost                                          |
+| ------------------------------------- | --------------------------------------------- |
+| No wrapper invoked yet                | ~0 ms (two `-f` checks on non-existent files) |
+| After a manager loaded, first cleanup | ~200–400 ms (sources nvm.sh / rbenv init)     |
+| After cleanup already ran             | ~0 ms (PATH check fast-fails)                 |
+| Steady state                          | ~0 ms (flag exists but PATH check fails)      |
 
 The cleanup cost is one-time per session and happens between command completion and prompt display, so it is barely perceptible.
 
@@ -169,12 +180,14 @@ Wrapper (subshell)                   Parent Shell
                                      9. sets NVM_ALREADY_LOADED=1
 ```
 
-The exported `$__LAZY_WRAPPERS_FLAGS_DIR` is how the child process knows where to write the flag — it inherits this variable from the parent shell where `shell_hook` set it up.
+The exported `$_LW_FLAGS_DIR` is how the child process knows where to write the flag — it inherits this variable from the parent shell where `shell-hook` set it up.
 
 ## Cleanup on exit
 
 ```bash
-trap 'rm -rf "$__LAZY_WRAPPERS_FLAGS_DIR" 2>/dev/null' EXIT
+__lazy_wrappers_cleanup_flags_dir() {
+    rm -rf "$_LW_FLAGS_DIR" 2>/dev/null || true
+}
 ```
 
-When the session ends, the flags directory is removed. This prevents stale flags from accumulating in `/tmp`.
+For zsh, `add-zsh-hook zshexit` registers the cleanup. For bash, `__lazy_wrappers_install_bash_exit_cleanup` chains the cleanup with any existing EXIT trap to avoid overwriting it. When the session ends, the flags directory is removed, preventing stale flags from accumulating in `/tmp`.

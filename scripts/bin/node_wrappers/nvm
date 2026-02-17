@@ -3,6 +3,8 @@
 # nvm is a shell function, not an executable, so we can't use 'exec'
 # This wrapper sources nvm.sh and then calls the nvm function
 
+FLAGS_DIR="${_LW_FLAGS_DIR:-${__LAZY_WRAPPERS_FLAGS_DIR:-}}"
+
 # Prevent infinite recursion
 if [[ -n "${__LAZY_WRAPPERS_NVM_LOADING:-}" ]]; then
     echo "Error: nvm wrapper recursion detected. Check your PATH configuration." >&2
@@ -28,8 +30,8 @@ if [[ -s "$NVM_DIR/nvm.sh" ]]; then
     . "$NVM_DIR/nvm.sh"
     export NVM_ALREADY_LOADED=1
     # Create flag file so shell_hook removes wrapper dir from parent shell PATH
-    if [[ -n "${__LAZY_WRAPPERS_FLAGS_DIR:-}" ]]; then
-        touch "$__LAZY_WRAPPERS_FLAGS_DIR/nvm_loaded" 2>/dev/null || true
+    if [[ -n "${FLAGS_DIR:-}" ]]; then
+        touch "$FLAGS_DIR/nvm_loaded" 2>/dev/null || true
     fi
 else
     # nvm not installed - try to install it via nvmload

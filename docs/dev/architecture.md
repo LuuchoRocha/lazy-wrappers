@@ -28,7 +28,7 @@ lazy-wrappers eliminates this by:
 - **Auto-installs managers** — nvm/rbenv are cloned from GitHub if not present
 - **Shebang compatible** — `#!/usr/bin/env node` works because wrappers use `exec`
 - **Customizable** — add/remove binaries via `wrappers.conf`, regenerate instantly
-- **Multi-shell support** — bash, zsh, and detection for fish/ksh/etc.
+- **Multi-shell support** — automatic configuration for bash and zsh; other shells can be configured manually
 
 ### Cons
 
@@ -95,7 +95,7 @@ lazy-wrappers eliminates this by:
                       │ read by
                       ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                  scripts/shell_hook                                  │
+│                  scripts/shell-hook                                  │
 │  Installs precmd (zsh) / PROMPT_COMMAND (bash) hook                 │
 │  On each prompt: checks flag files → removes wrapper dirs from PATH │
 │  → re-loads version manager into parent shell                       │
@@ -143,19 +143,19 @@ User types: node --version
 
 ## File ownership
 
-| File | Role | Modified at install? | Modified at runtime? |
-|------|------|---------------------|---------------------|
-| `install.sh` | Entry point | No (source) | No |
-| `scripts/install` | Installer | No (source) | No |
-| `scripts/config` | Configuration | No | No |
-| `scripts/wrappers.conf` | Binary list | No | User can edit, then `lw-recreate` |
-| `scripts/generate_wrappers` | Generator | No | No |
-| `scripts/nvmload` | nvm loader | No | No |
-| `scripts/rbenvload` | rbenv loader | No | No |
-| `scripts/shell_hook` | PATH cleanup hook | No | No |
-| `bin/node_wrappers/nvm` | Static wrapper | Copied at install | No |
-| `bin/ruby_wrappers/rbenv` | Static wrapper | Copied at install | No |
-| `bin/node_wrappers/*` | Generated wrappers | Generated at install | No |
-| `bin/ruby_wrappers/*` | Generated wrappers | Generated at install | No |
-| `~/.bashrc` / `~/.zshrc` | Shell RC files | Yes (lines appended) | No |
-| `/tmp/lazy-wrappers-$$/` | Runtime flags | No | Yes (created/deleted per session) |
+| File                        | Role               | Modified at install? | Modified at runtime?              |
+| --------------------------- | ------------------ | -------------------- | --------------------------------- |
+| `install.sh`                | Entry point        | No (source)          | No                                |
+| `scripts/install`           | Installer          | No (source)          | No                                |
+| `scripts/config`            | Configuration      | No                   | No                                |
+| `scripts/wrappers.conf`     | Binary list        | No                   | User can edit, then `lw-recreate` |
+| `scripts/generate_wrappers` | Generator          | No                   | No                                |
+| `scripts/nvmload`           | nvm loader         | No                   | No                                |
+| `scripts/rbenvload`         | rbenv loader       | No                   | No                                |
+| `scripts/shell-hook`        | PATH cleanup hook  | No                   | No                                |
+| `bin/node_wrappers/nvm`     | Static wrapper     | Copied at install    | No                                |
+| `bin/ruby_wrappers/rbenv`   | Static wrapper     | Copied at install    | No                                |
+| `bin/node_wrappers/*`       | Generated wrappers | Generated at install | No                                |
+| `bin/ruby_wrappers/*`       | Generated wrappers | Generated at install | No                                |
+| `~/.bashrc` / `~/.zshrc`    | Shell RC files     | Yes (lines appended) | No                                |
+| `/tmp/lazy-wrappers-$$/`    | Runtime flags      | No                   | Yes (created/deleted per session) |

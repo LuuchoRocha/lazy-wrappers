@@ -31,6 +31,7 @@ fi
 generate_nvm_wrapper() {
     local binary_name="$1"
     local wrapper_path="$NODE_WRAPPERS_DIR/$binary_name"
+    local guard_var="_LW_LOADING_${binary_name//[^a-zA-Z0-9_]/_}"
     
     # Validate binary name
     if [[ -z "$binary_name" ]]; then
@@ -44,11 +45,11 @@ generate_nvm_wrapper() {
 # Lazy wrapper for __BINARY__
 
 # Prevent infinite recursion
-if [[ -n "${__LAZY_WRAPPERS_LOADING___BINARY__:-}" ]]; then
+if [[ -n "${__GUARD_VAR__:-}" ]]; then
     echo "Error: wrapper recursion detected for __BINARY__" >&2
     exit 1
 fi
-export __LAZY_WRAPPERS_LOADING___BINARY__=1
+export __GUARD_VAR__=1
 
 # Remove ALL occurrences of wrapper directory from PATH to prevent recursion
 WRAPPER_DIR="__NODE_WRAPPERS__"
@@ -76,6 +77,7 @@ WRAPPER_EOF
 
     # Replace placeholders (cross-platform sed without -i)
     sed -e "s|__BINARY__|$binary_name|g" \
+        -e "s|__GUARD_VAR__|$guard_var|g" \
         -e "s|__NODE_WRAPPERS__|$NODE_WRAPPERS_DIR|g" \
         -e "s|__SCRIPTS__|$SCRIPT_DIR|g" \
         "$wrapper_path" > "$wrapper_path.tmp" && mv "$wrapper_path.tmp" "$wrapper_path"
@@ -95,6 +97,7 @@ WRAPPER_EOF
 generate_rbenv_wrapper() {
     local binary_name="$1"
     local wrapper_path="$RUBY_WRAPPERS_DIR/$binary_name"
+    local guard_var="_LW_LOADING_${binary_name//[^a-zA-Z0-9_]/_}"
     
     # Validate binary name
     if [[ -z "$binary_name" ]]; then
@@ -107,11 +110,11 @@ generate_rbenv_wrapper() {
 # Lazy wrapper for __BINARY__
 
 # Prevent infinite recursion
-if [[ -n "${__LAZY_WRAPPERS_LOADING___BINARY__:-}" ]]; then
+if [[ -n "${__GUARD_VAR__:-}" ]]; then
     echo "Error: wrapper recursion detected for __BINARY__" >&2
     exit 1
 fi
-export __LAZY_WRAPPERS_LOADING___BINARY__=1
+export __GUARD_VAR__=1
 
 # Remove ALL occurrences of wrapper directory from PATH to prevent recursion
 WRAPPER_DIR="__RUBY_WRAPPERS__"
@@ -139,6 +142,7 @@ WRAPPER_EOF
 
     # Replace placeholders (cross-platform sed without -i)
     sed -e "s|__BINARY__|$binary_name|g" \
+        -e "s|__GUARD_VAR__|$guard_var|g" \
         -e "s|__RUBY_WRAPPERS__|$RUBY_WRAPPERS_DIR|g" \
         -e "s|__SCRIPTS__|$SCRIPT_DIR|g" \
         "$wrapper_path" > "$wrapper_path.tmp" && mv "$wrapper_path.tmp" "$wrapper_path"
