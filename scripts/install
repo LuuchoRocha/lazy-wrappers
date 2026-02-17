@@ -27,7 +27,7 @@ print_success() {
 
     # Print success message
     echo -e "\n${GREEN}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}${BOLD}║${NC}            ${GREEN}${BOLD}✓ Installation completed successfully${NC}           ${GREEN}${BOLD}║${NC}"
+    echo -e "${GREEN}${BOLD}║${NC}            ${GREEN}${BOLD}  ✓ Installation completed successfully${NC}           ${GREEN}${BOLD}║${NC}"
     echo -e "${GREEN}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}"
 
     echo -e "\n${BOLD}Installed locations:${NC}"
@@ -139,28 +139,58 @@ HOOK_SOURCE=". \"$INSTALL_DIR/scripts/shell-hook\""
 
 echo -e "\n${BOLD}→ Configuring shell${NC}"
 
-# Process each RC file to add PATH
-for RC_FILE in "${RC_FILES[@]}"; do
-    # Backup the shell configuration file if it exists
-    if [[ -f "$RC_FILE" ]]; then
-        RC_BACKUP="${RC_FILE}.backup-$(date +%Y%m%d%H%M%S)"
-        if cp "$RC_FILE" "$RC_BACKUP"; then
-            echo -e "  ${DIM}Backup saved: $RC_BACKUP${NC}"
+if [[ "${SKIP_RC_CONFIG:-0}" -eq 1 ]]; then
+    echo -e "  ${YELLOW}⚠ Warning:${NC} Automatic shell configuration skipped for shell '${USER_SHELL}'."
+    echo -e "  Add these directories to PATH using your shell's syntax:"
+    echo -e "    ${DIM}$NODE_WRAPPERS_DIR${NC}"
+    echo -e "    ${DIM}$RUBY_WRAPPERS_DIR${NC}"
+    echo -e "    ${DIM}$COMMANDS_DIR${NC}"
+    echo -e "  Optional (bash/zsh only): ${DIM}$HOOK_SOURCE${NC}"
+else
+    # Process each RC file to add PATH and hook
+    for RC_FILE in "${RC_FILES[@]}"; do
+        # Backup the shell configuration file if it exists
+        if [[ -f "$RC_FILE" ]]; then
+            RC_BACKUP="${RC_FILE}.backup-$(date +%Y%m%d%H%M%S)"
+            if cp "$RC_FILE" "$RC_BACKUP"; then
+                echo -e "  ${DIM}Backup saved: $RC_BACKUP${NC}"
+            else
+                echo -e "  ${YELLOW}⚠ Warning:${NC} Failed to create backup of $RC_FILE"
+            fi
         else
-            echo -e "  ${YELLOW}⚠ Warning:${NC} Failed to create backup of $RC_FILE"
+            # Create the RC file if it doesn't exist
+            if ! touch "$RC_FILE" 2>/dev/null; then
+                echo -e "  ${YELLOW}⚠ Warning:${NC} Cannot create $RC_FILE, skipping"
+                continue
+            fi
         fi
-    else
-        # Create the RC file if it doesn't exist
-        if ! touch "$RC_FILE" 2>/dev/null; then
-            echo -e "  ${YELLOW}⚠ Warning:${NC} Cannot create $RC_FILE, skipping"
+
+        had_existing_config=0
+        if grep -qF "lazy-wrappers" "$RC_FILE" ||
+            grep -qF "$NODE_WRAPPERS_DIR" "$RC_FILE" ||
+            grep -qF "$RUBY_WRAPPERS_DIR" "$RC_FILE" ||
+            grep -qF "$COMMANDS_DIR" "$RC_FILE" ||
+            grep -qF "$INSTALL_DIR/scripts/shell-hook" "$RC_FILE" ||
+            grep -qF "$INSTALL_DIR/scripts/shell_hook" "$RC_FILE" ||
+            grep -qF "shell_hook.sh" "$RC_FILE"; then
+            had_existing_config=1
+        fi
+
+        if ! sed \
+            -e '\#lazy-wrappers:#d' \
+            -e "\#$NODE_WRAPPERS_DIR#d" \
+            -e "\#$RUBY_WRAPPERS_DIR#d" \
+            -e "\#$COMMANDS_DIR#d" \
+            -e "\#$INSTALL_DIR/scripts/shell-hook#d" \
+            -e "\#$INSTALL_DIR/scripts/shell_hook#d" \
+            -e '\#shell_hook.sh#d' \
+            "$RC_FILE" >"${RC_FILE}.tmp"; then
+            echo -e "  ${RED}✗ Error:${NC} Failed to update existing lazy-wrappers lines in $RC_FILE"
+            rm -f "${RC_FILE}.tmp"
             continue
         fi
-    fi
+        mv "${RC_FILE}.tmp" "$RC_FILE"
 
-    # Check if already installed
-    if [[ -f "$RC_FILE" ]] && grep -qF "lazy-wrappers" "$RC_FILE"; then
-        echo -e "  ${GREEN}✓${NC} $RC_FILE ${DIM}(already configured)${NC}"
-    else
         {
             echo ""
             echo "$PATH_COMMENT"
@@ -170,9 +200,14 @@ for RC_FILE in "${RC_FILES[@]}"; do
             echo -e "  ${RED}✗ Error:${NC} Failed to modify $RC_FILE"
             continue
         }
-        echo -e "  ${GREEN}✓${NC} $RC_FILE ${DIM}(configured)${NC}"
-    fi
-done
+
+        if [[ "$had_existing_config" -eq 1 ]]; then
+            echo -e "  ${GREEN}✓${NC} $RC_FILE ${DIM}(updated)${NC}"
+        else
+            echo -e "  ${GREEN}✓${NC} $RC_FILE ${DIM}(configured)${NC}"
+        fi
+    done
+fi
 
 print_success
 exit 0

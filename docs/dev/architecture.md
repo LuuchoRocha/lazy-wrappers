@@ -28,7 +28,7 @@ lazy-wrappers eliminates this by:
 - **Auto-installs managers** — nvm/rbenv are cloned from GitHub if not present
 - **Shebang compatible** — `#!/usr/bin/env node` works because wrappers use `exec`
 - **Customizable** — add/remove binaries via `wrappers.conf`, regenerate instantly
-- **Multi-shell support** — bash, zsh, and detection for fish/ksh/etc.
+- **Multi-shell support** — automatic configuration for bash and zsh; other shells can be configured manually
 
 ### Cons
 

@@ -90,9 +90,9 @@ fi
 
 nvm's completion uses bash's `complete` builtin. zsh needs `bashcompinit` loaded first. Both `nvmload` and `shell-hook`'s parent-shell loader handle this.
 
-### fish shell
+### Other shells (fish, ksh, etc.)
 
-The config file covers fish detection, but the wrappers and shell hook are bash scripts. Fish support would require fish-native wrapper scripts and a fish-compatible hook. This is currently unsupported.
+Automatic RC file configuration only supports bash and zsh. The wrappers and shell hook are bash scripts. Other shells (fish, ksh, tcsh, etc.) would require native wrapper scripts and shell-specific hooks. Users on other shells can manually add wrapper directories to PATH.
 
 ## Testing changes
 

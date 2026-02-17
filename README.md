@@ -238,9 +238,9 @@ sudo dnf install git
 
 ### Compatibility with specific shells
 
-**Supported shells**: bash, zsh, fish, ksh, tcsh, csh, dash, sh
+**Supported shells**: bash, zsh
 
-**Unsupported shell**: If you use a different shell, lazy-wrappers will warn you and try to use `.profile`. You may need to manually add the wrapper directories to your PATH.
+**Other shells**: Installation still copies all scripts, but RC auto-configuration is skipped. Add wrapper directories to PATH manually; the shell hook is for bash/zsh.
 
 ## Configuration
 

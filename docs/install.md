@@ -24,6 +24,8 @@ cd lazy-wrappers
 1. Copies the project to `~/.lazy-wrappers`
 2. Modifies your shell startup files to prepend wrapper directories to `PATH` and enable the cleanup hook
 
+Automatic startup-file configuration currently supports bash and zsh.
+
 If your shell already initializes `nvm` or `rbenv` the traditional way, remove or comment out those lines—otherwise you'll still pay the startup cost.
 
 To locate existing initialization:

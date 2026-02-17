@@ -16,9 +16,11 @@ USER_SHELL="$(basename "${SHELL:-/bin/bash}")"
 
 # Array to hold shell configuration files
 RC_FILES=()
+SKIP_RC_CONFIG=0
 
 # Determine which shell configuration files to modify based on detected shell
-# Different shells use different RC files for login vs interactive sessions
+# Different shells use different RC files for login vs interactive sessions.
+# Automatic configuration currently supports bash and zsh only.
 case "$USER_SHELL" in
     bash)
         # For bash: .bash_profile (login shells/GUI) and .bashrc (interactive shells)
@@ -33,37 +35,15 @@ case "$USER_SHELL" in
         # For zsh: .zprofile (login shells/GUI) and .zshrc (interactive shells)
         RC_FILES=("$HOME/.zprofile" "$HOME/.zshrc")
         ;;
-    fish)
-        # Fish uses a single configuration file
-        RC_FILES=("$HOME/.config/fish/config.fish")
-        ;;
-    ksh)
-        # Korn shell configuration
-        RC_FILES=("$HOME/.kshrc")
-        ;;
-    tcsh)
-        # TCSH configuration
-        RC_FILES=("$HOME/.tcshrc")
-        ;;
-    csh)
-        # C shell configuration
-        RC_FILES=("$HOME/.cshrc")
-        ;;
-    dash|sh)
-        # POSIX-compliant shells typically use .profile
-        RC_FILES=("$HOME/.profile")
-        ;;
     *)
-        # Unsupported shell - warn but provide fallback
-        echo "Warning: Unsupported shell: $USER_SHELL"
-        echo "Defaulting to .profile for shell configuration."
-        echo "Please manually add $NODE_WRAPPERS_DIR and $RUBY_WRAPPERS_DIR to your PATH if needed."
-        RC_FILES=("$HOME/.profile")
+        echo "Warning: Shell '$USER_SHELL' is not supported for automatic configuration."
+        echo "Automatic RC file updates are available for bash and zsh only."
+        SKIP_RC_CONFIG=1
         ;;
 esac
 
 # Validate that we have at least one RC file
-if [[ ${#RC_FILES[@]} -eq 0 ]]; then
+if [[ ${#RC_FILES[@]} -eq 0 && "$SKIP_RC_CONFIG" -eq 0 ]]; then
     echo "Error: No shell configuration files identified"
     exit 1
 fi

@@ -112,22 +112,48 @@ __lazy_wrappers_cleanup() {
     fi
 }
 
+__lazy_wrappers_cleanup_flags_dir() {
+    rm -rf "$_LW_FLAGS_DIR" 2>/dev/null || true
+}
+
+__lazy_wrappers_install_bash_exit_cleanup() {
+    local trap_output=""
+    local existing_exit_trap=""
+
+    trap_output="$(trap -p EXIT 2>/dev/null || true)"
+    if [[ -n "$trap_output" ]]; then
+        existing_exit_trap="${trap_output#trap -- \'}"
+        existing_exit_trap="${existing_exit_trap%\' EXIT}"
+    fi
+
+    if [[ "$existing_exit_trap" == *"__lazy_wrappers_cleanup_flags_dir"* ]]; then
+        return 0
+    fi
+
+    if [[ -n "$existing_exit_trap" ]]; then
+        trap "__lazy_wrappers_cleanup_flags_dir; $existing_exit_trap" EXIT
+    else
+        trap "__lazy_wrappers_cleanup_flags_dir" EXIT
+    fi
+}
+
 # Create the flags directory for this shell session
 mkdir -p "$_LW_FLAGS_DIR" 2>/dev/null
 
-# Clean up flags directory on shell exit
-trap 'rm -rf "$_LW_FLAGS_DIR" 2>/dev/null' EXIT
-
 # Install the hook based on shell type
-if [[ -n "$ZSH_VERSION" ]]; then
+if [[ -n "${ZSH_VERSION:-}" ]]; then
     # Zsh: use precmd hook
     autoload -Uz add-zsh-hook
     add-zsh-hook precmd __lazy_wrappers_cleanup
-elif [[ -n "$BASH_VERSION" ]]; then
+    add-zsh-hook zshexit __lazy_wrappers_cleanup_flags_dir
+elif [[ -n "${BASH_VERSION:-}" ]]; then
     # Bash: use PROMPT_COMMAND
-    if [[ "$PROMPT_COMMAND" != *"__lazy_wrappers_cleanup"* ]]; then
+    if [[ "${PROMPT_COMMAND:-}" != *"__lazy_wrappers_cleanup"* ]]; then
         PROMPT_COMMAND="__lazy_wrappers_cleanup${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
     fi
+    __lazy_wrappers_install_bash_exit_cleanup
+else
+    trap "__lazy_wrappers_cleanup_flags_dir" EXIT
 fi
 
 # Export the flags dir so wrappers can use it

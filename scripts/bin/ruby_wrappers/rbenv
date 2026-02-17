@@ -2,6 +2,8 @@
 # Static wrapper for rbenv
 # This wrapper ensures rbenv is properly loaded before running
 
+FLAGS_DIR="${_LW_FLAGS_DIR:-${__LAZY_WRAPPERS_FLAGS_DIR:-}}"
+
 # Prevent infinite recursion
 if [[ -n "${__LAZY_WRAPPERS_RBENV_LOADING:-}" ]]; then
     echo "Error: rbenv wrapper recursion detected. Check your PATH configuration." >&2
@@ -28,8 +30,8 @@ if ! command -v rbenv &>/dev/null; then
 fi
 
 # Create flag file so shell_hook removes wrapper dir from parent shell PATH
-if [[ -n "${__LAZY_WRAPPERS_FLAGS_DIR:-}" ]]; then
-    touch "$__LAZY_WRAPPERS_FLAGS_DIR/rbenv_loaded" 2>/dev/null || true
+if [[ -n "${FLAGS_DIR:-}" ]]; then
+    touch "$FLAGS_DIR/rbenv_loaded" 2>/dev/null || true
 fi
 
 # rbenv should now be available - run it

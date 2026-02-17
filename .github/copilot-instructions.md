@@ -12,7 +12,7 @@ uninstall.sh            → Cleans up shell configs and optionally removes insta
 scripts/
   wrappers.conf         → Single source of truth: lists all binaries to wrap
   generate_wrappers  → Reads wrappers.conf, generates wrapper scripts
-  config                → Shell detection (bash/zsh/fish/etc) and path variables
+  config                → Shell detection (bash/zsh) and path variables
   nvmload               → Lazy loader for nvm (auto-clones if missing)
   rbenvload             → Lazy loader for rbenv (auto-clones if missing)
   shell-hook         → Post-command hook to clean up PATH after loading

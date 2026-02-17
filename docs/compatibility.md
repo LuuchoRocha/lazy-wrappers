@@ -11,11 +11,11 @@ Compatibility also depends on the installer modifying the correct startup file(s
 
 ## Shells
 
-Supported: bash, zsh, fish, ksh, tcsh, csh, dash, sh.
+Supported for automatic configuration: bash, zsh.
 
-Primarily tested on bash and zsh. Other shells should work if they honor `PATH` set early in the session.
+Other shells require manual configuration because the installer writes bash/zsh startup snippets, and the shell hook is bash/zsh-oriented.
 
-For less common shells, verify:
+For manual setups, verify:
 
 - your `PATH` includes the wrapper directories first
 - `which node` resolves to a wrapper before first use

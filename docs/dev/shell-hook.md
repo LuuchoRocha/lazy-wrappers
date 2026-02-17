@@ -27,7 +27,6 @@ The shell hook:
 _LW_FLAGS_DIR="${XDG_RUNTIME_DIR:-/tmp}/lazy-wrappers-$$"
 
 mkdir -p "$_LW_FLAGS_DIR" 2>/dev/null
-trap 'rm -rf "$_LW_FLAGS_DIR" 2>/dev/null' EXIT
 export _LW_FLAGS_DIR
 ```
 
@@ -60,6 +59,14 @@ fi
 | ----- | -------------------------------- | ------------------ |
 | zsh   | `precmd` hook via `add-zsh-hook` | Before each prompt |
 | bash  | `PROMPT_COMMAND`                 | Before each prompt |
+
+Exit cleanup:
+
+| Shell | Mechanism                               | Purpose                 |
+| ----- | --------------------------------------- | ----------------------- |
+| zsh   | `zshexit` hook via `add-zsh-hook`       | Removes flags directory |
+| bash  | EXIT trap (chained with existing traps) | Removes flags directory |
+| other | `trap ... EXIT`                         | Removes flags directory |
 
 Notes on the bash registration:
 
@@ -178,7 +185,9 @@ The exported `$_LW_FLAGS_DIR` is how the child process knows where to write the 
 ## Cleanup on exit
 
 ```bash
-trap 'rm -rf "$_LW_FLAGS_DIR" 2>/dev/null' EXIT
+__lazy_wrappers_cleanup_flags_dir() {
+    rm -rf "$_LW_FLAGS_DIR" 2>/dev/null || true
+}
 ```
 
-When the session ends, the flags directory is removed. This prevents stale flags from accumulating in `/tmp`.
+For zsh, `add-zsh-hook zshexit` registers the cleanup. For bash, `__lazy_wrappers_install_bash_exit_cleanup` chains the cleanup with any existing EXIT trap to avoid overwriting it. When the session ends, the flags directory is removed, preventing stale flags from accumulating in `/tmp`.
